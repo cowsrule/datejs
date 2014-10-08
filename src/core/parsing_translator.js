@@ -37,6 +37,11 @@
 
 		if (!this.year) {
 			this.year = now.getFullYear();
+
+			if (this.month < now.getMonth())
+			{
+				this.year++;
+			}
 		}
 		
 		if (!this.month && this.month !== 0) {
@@ -58,6 +63,7 @@
 		if (!this.second) {
 			this.second = 0;
 		}
+
 		if (!this.millisecond) {
 			this.millisecond = 0;
 		}
@@ -119,16 +125,19 @@
 		hour: function (s) {
 			return function () {
 				this.hour = Number(s);
+				this.setExplicitTime = true;
 			};
 		},
 		minute: function (s) {
 			return function () {
 				this.minute = Number(s);
+				this.setExplicitTime = true;
 			};
 		},
 		second: function (s) {
 			return function () {
 				this.second = Number(s);
+				this.setExplicitTime = true;
 			};
 		},
 		/* for ss.s format */
@@ -137,11 +146,13 @@
 				var mx = s.match(/^([0-5][0-9])\.([0-9]{1,3})/);
 				this.second = Number(mx[1]);
 				this.millisecond = Number(mx[2]);
+				this.setExplicitTime = true;
 			};
 		},
 		meridian: function (s) {
 			return function () {
 				this.meridian = s.slice(0, 1).toLowerCase();
+				this.setExplicitTime = true;
 			};
 		},
 		timezone: function (s) {
@@ -184,6 +195,12 @@
 					case "yesterday":
 						this.days = -1;
 						break;
+					case "later":
+						this.days = 5;
+						break;
+					case "soon":
+						this.days = 2;
+						break;
 					case "tomorrow":
 						this.days = 1;
 						break;
@@ -215,9 +232,12 @@
 			}
 
 			d = new Date(this.year, this.month, this.day, this.hour, this.minute, this.second, this.millisecond);
+			d._explicitTime = this.setExplicitTime;
+
 			if (this.year < 100) {
 				d.setFullYear(this.year); // means years less that 100 are process correctly. JS will parse it otherwise as 1900-1999.
 			}
+
 			if (this.timezone) {
 				d.set({ timezone: this.timezone });
 			} else if (this.timezoneOffset) {
@@ -227,7 +247,7 @@
 			return d;
 		},
 		finish: function (x) {
-			var today, expression, orient, temp;
+			var today, expression, orient, givenYean, temp;
 
 			x = (x instanceof Array) ? flattenAndCompact(x) : [ x ];
 
@@ -247,6 +267,7 @@
 				today = finishUtils.getToday.call(this);
 			}
 			
+			givenYear = !!this.year;
 			expression = !!(this.days && this.days !== null || this.orient || this.operator);
 			orient = ((this.orient === "past" || this.operator === "subtract") ? -1 : 1);
 
@@ -327,6 +348,11 @@
 
 			if (expression && this.timezone && this.day && this.days) {
 				this.day = this.days;
+			}
+
+			if (!givenYear && this.month < today.getMonth())
+			{
+				this.year = today.getFullYear() + 1;
 			}
 			
 			return (expression) ? today.add(this) : today.set(this);

@@ -263,7 +263,10 @@
 	 * @return {Date}    A new Date instance
 	 */
 	$P.clone = function () {
-		return new Date(this.getTime());
+		var tDate = new Date(this.getTime());
+		tDate._explicitTime = this._explicitTime;
+
+		return tDate;
 	};
 
 	/**
@@ -503,6 +506,10 @@
 		if (x.days) {
 			this.addDays(x.days);
 		}
+		if (x.setExplicitTime)
+		{
+			this._explicitTime = true;
+		}
 		return this;
 	};
 	
@@ -688,6 +695,12 @@
 		return (value > -841 && value < 721);
 	};
 
+    $D.validateSetExplicitTime = function(value)
+    {
+        return true;
+    };
+
+
 	var validateConfigObject = function (obj) {
 		var result = {}, self = this, prop, testFunc;
 		testFunc = function (prop, func, value) {
@@ -739,18 +752,23 @@
 				} else if (key === "year"){
 					getFunc = "getFullYear";
 				}
-				if (key !== "day" && key !== "timezone" && key !== "timezoneOffset"  && key !== "week") {
+                if (key !== "day" && key !== "timezone" && key !== "timezoneOffset"  && key !== "week" && key !== "setExplicitTime") {
 						this[addFunc](config[key] - this[getFunc]());
 				} else if ( key === "timezone" || key === "timezoneOffset" || key === "week") {
 					this["set"+name](config[key]);
 				}
 			}
 		}
+
 		// day has to go last because you can't validate the day without first knowing the month
 		if (config.day) {
 			this.addDays(config.day - this.getDate());
 		}
-		
+
+		if (config.setExplicitTime) {
+			this._explicitTime = true;
+		}
+
 		return this;
 	};
 

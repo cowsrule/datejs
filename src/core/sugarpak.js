@@ -16,6 +16,8 @@
 
 	// private
 	$P._same = false;
+
+	$P._explicitTime = false;
 	
 	// private
 	$P._isSecond = false;
@@ -272,8 +274,10 @@
 	// All culture-specific strings can be found in the CultureInfo files.
 	var dx = ("sunday monday tuesday wednesday thursday friday saturday").split(/\s/),
 		mx = ("january february march april may june july august september october november december").split(/\s/),
-		px = ("Millisecond Second Minute Hour Day Week Month Year Quarter Weekday").split(/\s/),
-		pxf = ("Milliseconds Seconds Minutes Hours Date Week Month FullYear Quarter").split(/\s/),
+		px = [],
+		pxf = [],
+		//px = ("Millisecond Second Minute Hour Day Week Month Year Quarter Weekday").split(/\s/),
+		//pxf = ("Milliseconds Seconds Minutes Hours Date Week Month FullYear Quarter").split(/\s/),
 		nth = ("final first second third fourth fifth").split(/\s/),
 		de;
 
@@ -366,7 +370,7 @@
 	var sdf = function (n) {
 		return function () {
 			var t = $D.today(), shift = n - t.getDay();
-			if (n === 0 && Date.CultureInfo.firstDayOfWeek === 1 && t.getDay() !== 0) {
+			if ((n === 0 && Date.CultureInfo.firstDayOfWeek === 1 && t.getDay() !== 0) || shift < 0) {
 				shift = shift + 7;
 			}
 			return t.addDays(shift);

@@ -106,6 +106,7 @@
 		 	// days, months, years
 			g.d = cacheProcessRtoken(/^([0-2]\d|3[0-1]|\d)/, t.day, "ordinalSuffix");
 			g.dd = cacheProcessRtoken(/^([0-2]\d|3[0-1])/, t.day, "ordinalSuffix");
+			g.rday = _.cache(_.process(g.ctoken("yesterday tomorrow soon later today now"), t.rday));
 			g.ddd = g.dddd = _.cache(_.process(g.ctoken("sun mon tue wed thu fri sat"),
 				function (s) {
 					return function () {
@@ -122,7 +123,7 @@
 			g.yyy = cacheProcessRtoken(/^(\d\d?\d?\d?)/, t.year);
 			g.yyyy = cacheProcessRtoken(/^(\d\d\d\d)/, t.year);
 
-			g.day = _fn(g.d, g.dd);
+			g.day = _fn(g.d, g.dd, g.rday);
 			g.month = _fn(g.M, g.MMM);
 			g.year = _fn(g.yyyy, g.yy);
 
@@ -155,14 +156,14 @@
 					};
 				}
 			);
-			g.rday = _.process(g.ctoken("yesterday tomorrow today now"), t.rday);
-			g.unit = _.process(g.ctoken("second minute hour day week month year"),
-				function (s) {
-					return function () {
-						this.unit = s;
-					};
-				}
-			);
+			// g.rday = _.process(g.ctoken("yesterday tomorrow soon later today now"), t.rday);
+			// g.unit = _.process(g.ctoken("second minute hour day week month year"),
+			// 	function (s) {
+			// 		return function () {
+			// 			this.unit = s;
+			// 		};
+			// 	}
+			// );
 		 }
 	};
 
@@ -182,7 +183,7 @@
 				};
 			}
 		);
-		g.expression = _.set([g.rday, g.operator, g.value, g.unit, g.orientation, g.ddd, g.MMM ]);
+		g.expression = _.set([g.rday, g.value, g.orientation, g.ddd, g.MMM ]);
 
 		g.format = _.process(_.many(
 			_.any(
@@ -222,16 +223,7 @@
 	// on the format string, ex: g.format("h:m:s tt")
 	// check for these formats first
 	g._formats = g.formats([
-		"\"yyyy-MM-ddTHH:mm:ssZ\"",
-		"yyyy-MM-ddTHH:mm:ss.sz",
-		"yyyy-MM-ddTHH:mm:ssZ",
-		"yyyy-MM-ddTHH:mm:ssz",
-		"yyyy-MM-ddTHH:mm:ss",
-		"yyyy-MM-ddTHH:mmZ",
-		"yyyy-MM-ddTHH:mmz",
-		"yyyy-MM-ddTHH:mm",
-		"ddd, MMM dd, yyyy H:mm:ss tt",
-		"ddd MMM d yyyy HH:mm:ss zzz",
+		"M-d H",
 		"MMddyyyy",
 		"ddMMyyyy",
 		"Mddyyyy",
@@ -240,8 +232,7 @@
 		"dMyyyy",
 		"yyyy",
 		"Mdyy",
-		"dMyy",
-		"d"
+		"dMyy"
 	]);
 	
 	// real starting rule: tries selected formats first, 
