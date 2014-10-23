@@ -296,6 +296,63 @@ describe("Parsing Module", function() {
 			var d2 = Date.today().addDays(1).set({hour: 15});
 			expect(d2.equals(d)).toBe(true);
 		});
-
+	});
+	describe("can parse Timezones correctly", function() {
+		it("defaults to local timezone", function (){
+			var d = Date.parse("30 Dec 2011 7pm");
+			var d2 = new Date(2011, 11, 30, 19);
+			expect(d2.equals(d)).toBe(true);
+		});
+		it("EST changes time", function (){
+			var d = Date.parse("30 Dec 2011 7pm EST");
+			var d2 = new Date(2011, 11, 30, 16);
+			expect(d2.equals(d)).toBe(true);
+		});
+		it("uses EST correctly when EDT is wrongly specified", function (){
+			var d = Date.parse("30 Dec 2011 7pm EDT");
+			var d2 = new Date(2011, 11, 30, 16);
+			expect(d2.equals(d)).toBe(true);
+		});
+			// Date.parse("monday 7:00pm edt")
+// Mon Oct 06 2014 19:00:00 GMT-0700 (Pacific Daylight Time)
+// Date.parse("monday 7:00pm pdt")
+// Mon Oct 06 2014 19:00:00 GMT-0700 (Pacific Daylight Time)
+	});
+	describe("parses 'dd MMM yyyy' format correctly", function() {
+		it("30 Dec 2011", function () {
+			var d = Date.parse("30 Dec 2011");
+			var d2 = new Date(2011, 11, 30);
+			expect(d2.equals(d)).toBe(true);
+		});
+		it("31 Dec 2011", function () {
+			var d = Date.parse("31 Dec 2011");
+			var d2 = new Date(2011, 11, 31);
+			expect(d2.equals(d)).toBe(true);
+		});	
+		it("30 Oct 2011", function () {
+			var d = Date.parse("30 Oct 2011");
+			var d2 = new Date(2011, 9, 30);
+			expect(d2.equals(d)).toBe(true);
+		});	
+		it("31 Oct 2011", function () {
+			var d = Date.parse("31 Oct 2011");
+			var d2 = new Date(2011, 9, 31);
+			expect(d2.equals(d)).toBe(true);
+		});	
+		it("29 Oct 2011", function () {
+			var d = Date.parse("29 Oct 2011");
+			var d2 = new Date(2011, 9, 29);
+			expect(d2.equals(d)).toBe(true);
+		});	
+		it("29 Oct 2010", function () {
+			var d = Date.parse("29 Oct 2010");
+			var d2 = new Date(2010, 9, 29);
+			expect(d2.equals(d)).toBe(true);
+		});	
+		it("2011 Oct 29", function () {
+			var d = Date.parse("2011 Oct 29");
+			var d2 = new Date(2011, 9, 29);
+			expect(d2.equals(d)).toBe(true);
+		});	
 	});
 });
