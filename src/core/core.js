@@ -690,7 +690,7 @@
 		var timezones = {"ACDT":1,"ACST":1,"ACT":1,"ADT":1,"AEDT":1,"AEST":1,"AFT":1,"AKDT":1,"AKST":1,"AMST":1,"AMT":1,"ART":1,"AST":1,"AWDT":1,"AWST":1,"AZOST":1,"AZT":1,"BDT":1,"BIOT":1,"BIT":1,"BOT":1,"BRT":1,"BST":1,"BTT":1,"CAT":1,"CCT":1,"CDT":1,"CEDT":1,"CEST":1,"CET":1,"CHADT":1,"CHAST":1,"CHOT":1,"ChST":1,"CHUT":1,"CIST":1,"CIT":1,"CKT":1,"CLST":1,"CLT":1,"COST":1,"COT":1,"CST":1,"CT":1,"CVT":1,"CWST":1,"CXT":1,"DAVT":1,"DDUT":1,"DFT":1,"EASST":1,"EAST":1,"EAT":1,"ECT":1,"EDT":1,"EEDT":1,"EEST":1,"EET":1,"EGST":1,"EGT":1,"EIT":1,"EST":1,"FET":1,"FJT":1,"FKST":1,"FKT":1,"FNT":1,"GALT":1,"GAMT":1,"GET":1,"GFT":1,"GILT":1,"GIT":1,"GMT":1,"GST":1,"GYT":1,"HADT":1,"HAEC":1,"HAST":1,"HKT":1,"HMT":1,"HOVT":1,"HST":1,"ICT":1,"IDT":1,"IOT":1,"IRDT":1,"IRKT":1,"IRST":1,"IST":1,"JST":1,"KGT":1,"KOST":1,"KRAT":1,"KST":1,"LHST":1,"LINT":1,"MAGT":1,"MART":1,"MAWT":1,"MDT":1,"MET":1,"MEST":1,"MHT":1,"MIST":1,"MIT":1,"MMT":1,"MSK":1,"MST":1,"MUT":1,"MVT":1,"MYT":1,"NCT":1,"NDT":1,"NFT":1,"NPT":1,"NST":1,"NT":1,"NUT":1,"NZDT":1,"NZST":1,"OMST":1,"ORAT":1,"PDT":1,"PET":1,"PETT":1,"PGT":1,"PHOT":1,"PHT":1,"PKT":1,"PMDT":1,"PMST":1,"PONT":1,"PST":1,"PYST":1,"PYT":1,"RET":1,"ROTT":1,"SAKT":1,"SAMT":1,"SAST":1,"SBT":1,"SCT":1,"SGT":1,"SLST":1,"SRT":1,"SST":1,"SYOT":1,"TAHT":1,"THA":1,"TFT":1,"TJT":1,"TKT":1,"TLT":1,"TMT":1,"TOT":1,"TVT":1,"UCT":1,"ULAT":1,"UTC":1,"UYST":1,"UYT":1,"UZT":1,"VET":1,"VLAT":1,"VOLT":1,"VOST":1,"VUT":1,"WAKT":1,"WAST":1,"WAT":1,"WEDT":1,"WEST":1,"WET":1,"WST":1,"YAKT":1,"YEKT":1,"Z":1};
 		return (timezones[value] === 1);
 	};
-	$D.validateTimezoneOffset= function(value) {
+	$D.validateTimezoneOffset = function(value) {
 		// timezones go from +14hrs to -12hrs, the +X hours are negative offsets.
 		return (value > -841 && value < 721);
 	};
@@ -753,7 +753,7 @@
 					getFunc = "getFullYear";
 				}
                 if (key !== "day" && key !== "timezone" && key !== "timezoneOffset"  && key !== "week" && key !== "setExplicitTime") {
-						this[addFunc](config[key] - this[getFunc]());
+					this[addFunc](config[key] - this[getFunc]());
 				} else if ( key === "timezone" || key === "timezoneOffset" || key === "week") {
 					this["set"+name](config[key]);
 				}

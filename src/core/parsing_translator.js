@@ -354,7 +354,9 @@
 			{
 				this.year = today.getFullYear() + 1;
 			}
-			
+
+			this._explicitTime = this.setExplicitTime;
+
 			return (expression) ? today.add(this) : today.set(this);
 		}
 	};
