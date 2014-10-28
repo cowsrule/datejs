@@ -158,14 +158,13 @@
 		this.setMilliseconds(milliseconds || this.getMilliseconds());
 	};
 
-
-	/**
-	 * Gets the time of day for this date instances. 
-	 * @return {TimeSpan} TimeSpan
-	 */
 	Date.prototype.getTimeOfDay = function () {
-		return new TimeSpan(0, this.getHours(), this.getMinutes(), this.getSeconds(), this.getMilliseconds());
+		return this.getMilliseconds() + this.getSeconds() * 1000 + this.getMinutes() * 60000 + this.getHours() * 3600000;
 	};
+
+	Date.prototype.hasTimeOfDay = function() {
+		return (this.getHours() !== 0 || this.getMinutes() !== 0 || this.getSeconds() !== 0 || this.getMilliseconds() !== 0);
+	}
 
 	Date.TimeSpan = TimeSpan;
 

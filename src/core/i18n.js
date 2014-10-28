@@ -107,40 +107,6 @@
 			return getText.getFromKey(key, countryCode);
 		}
 	};
-	
-	var loadI18nScript = function (code) {
-		// paatterned after jQuery's getScript.
-		var url = Date.Config.i18n + code + ".js";
-		var head = document.getElementsByTagName("head")[0] || document.documentElement;
-		var script = document.createElement("script");
-		script.src = url;
-
-		var completed = false;
-		var events = {
-			done: function (){} // placeholder function
-		};
-		// Attach handlers for all browsers
-		script.onload = script.onreadystatechange = function() {
-			if ( !completed && (!this.readyState || this.readyState === "loaded" || this.readyState === "complete") ) {
-				events.done();
-				head.removeChild(script);
-			}
-		};
-
-		setTimeout(function() {
-			head.insertBefore(script, head.firstChild);
-		}, 0); // allows return to execute first
-		
-		return {
-			done: function (cb) {
-				events.done = function() {
-					if (cb) {
-						setTimeout(cb,0);
-					}
-				};
-			}
-		};
-	};
 
 	var buildInfo = {
 		buildFromMethodHash: function (obj) {
@@ -263,6 +229,8 @@
 				universalSortableDateTime: "yyyy-MM-dd HH:mm:ssZ",
 				rfc1123: "ddd, dd MMM yyyy HH:mm:ss",
 				monthDay: "MMMM dd",
+				monthDayShortTime: "MM/dd",
+				monthDayYear: "MM/dd/yy",
 				yearMonth: "MMMM, yyyy"
 			}, Date.i18n.currentLanguage());
 		},
@@ -348,7 +316,6 @@
 			return lang || "en-US";
 		},
 		setLanguage: function (code, force, cb) {
-			var async = false;
 			if (force || code === "en-US" || (!!Date.CultureStrings && !!Date.CultureStrings[code])) {
 				lang = code;
 				Date.CultureStrings = Date.CultureStrings || {};
@@ -356,44 +323,15 @@
 				Date.CultureInfo = new CultureInfo();
 			} else {
 				if (!(!!Date.CultureStrings && !!Date.CultureStrings[code])) {
-					if (typeof exports !== "undefined" && this.exports !== exports) {
-						// we're in a Node enviroment, load it using require
-						try {
-							require("../i18n/" + code + ".js");
-							lang = code;
-							Date.CultureStrings.lang = code;
-							Date.CultureInfo = new CultureInfo();
-						} catch (e) {
-							// var str = "The language for '" + code + "' could not be loaded by Node. It likely does not exist.";
-							throw new Error("The DateJS IETF language tag '" + code + "' could not be loaded by Node. It likely does not exist.");
-						}
-					} else if (Date.Config && Date.Config.i18n) {
-						// we know the location of the files, so lets load them
-						async = true;
-						loadI18nScript(code).done(function(){
-							lang = code;
-							Date.CultureStrings = Date.CultureStrings || {};
-							Date.CultureStrings.lang = code;
-							Date.CultureInfo = new CultureInfo();
-							$D.Parsing.Normalizer.buildReplaceData(); // because this is async
-							if ($D.Grammar) {
-								$D.Grammar.buildGrammarFormats(); // so we can parse those strings...
-							}
-							if (cb) {
-								setTimeout(cb,0);
-							}
-						});
-					} else {
-						Date.console.error("The DateJS IETF language tag '" + code + "' is not available and has not been loaded.");
-					}
+					debugger;
 				}
 			}
 			$D.Parsing.Normalizer.buildReplaceData(); // rebuild normalizer strings
 			if ($D.Grammar) {
 				$D.Grammar.buildGrammarFormats(); // so we can parse those strings...
 			}
-			if (!async && cb) {
-				setTimeout(cb,0);
+			if (cb) {
+				cb();
 			}
 		},
 		getLoggedKeys: function () {

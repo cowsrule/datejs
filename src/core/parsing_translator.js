@@ -81,7 +81,7 @@
 			var gap;
 			this.unit = "day";
 			gap = ($D.getDayNumberFromName(this.weekday) - today.getDay());
-			this.days = gap ? ((gap + (orient * 7)) % 7) : (orient * 7);
+			this.days = gap ? (gap + (orient * 7)) : (orient * 7);
 			return this;
 		},
 		setMonthsFromMonth: function (today, orient) {
