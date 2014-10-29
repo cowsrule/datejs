@@ -221,23 +221,6 @@
 		}
 		return date;
 	};
-	
-	$P.ISO = {
-		regex : /^([\+-]?\d{4}(?!\d{2}\b))((-?)((0[1-9]|1[0-2])(\3([12]\d|0[1-9]|3[01]))?|W([0-4]\d|5[0-3])(-?[1-7])?|(00[1-9]|0[1-9]\d|[12]\d{2}|3([0-5]\d|6[1-6])))([T\s]((([01]\d|2[0-4])((:?)[0-5]\d)?|24\:?00)([\.,]\d+(?!:))?)?(\17[0-5]\d([\.,]\d+)?)?\s?([zZ]|([\+-])([01]\d|2[0-3]):?([0-5]\d)?)?)?)?$/,
-		parse : function (s) {
-			var time, data = s.match(this.regex);
-			if (!data || !data.length) {
-				return null;
-			}
-
-			time = utils.buildTimeObjectFromData(data);
-
-			if (!time.year || (!time.year && (!time.month && !time.day) && (!time.week && !time.dayOfYear)) ) {
-				return null;
-			}
-			return $P.processTimeObject(time);
-		}
-	};
 
 	$P.Numeric = {
 		isNumeric: function (e){return!isNaN(parseFloat(e))&&isFinite(e);},
@@ -293,7 +276,7 @@
 		basicReplaceHash : function() {
 			var $R = Date.CultureInfo.regexPatterns;
 			return {
-				"January": $R.jan.source,
+				"January": $R.jan,
 				"February": $R.feb,
 				"March": $R.mar,
 				"April": $R.apr,
@@ -307,9 +290,7 @@
 				"December": $R.dec,
 				"": /\bat\b/gi,
 				" ": /\s{2,}/,
-				"am": $R.inTheMorning,
 				"9am": $R.thisMorning,
-				"pm": $R.inTheEvening,
 				"7pm":$R.thisEvening
 			};
 		},
@@ -336,9 +317,7 @@
 				function(full, m1) {
 					var t = Date.today().addDays(1).toString("d");
 					return (t + " " + m1);
-				}],
-				[$R.amThisMorning, function(str, am){return am;}],
-				[$R.pmThisEvening, function(str, pm){return pm;}]
+				}]
 			];
 				
 		},

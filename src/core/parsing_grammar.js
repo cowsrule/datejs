@@ -230,7 +230,6 @@
 		"ddMyyyy",
 		"Mdyyyy",
 		"dMyyyy",
-		"yyyy",
 		"Mdyy",
 		"dMyy"
 	]);

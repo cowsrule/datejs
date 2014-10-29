@@ -236,12 +236,8 @@
 		},
 		regex: function () {
 			return getText.getFromObjectValues({
-				inTheMorning: "/( in the )(morn(ing)?)\\b/",
 				thisMorning: "/(this )(morn(ing)?)\\b/",
-				amThisMorning: "/(\b\\d(am)? )(this )(morn(ing)?)/",
-				inTheEvening: "/( in the )(even(ing)?)\\b/",
 				thisEvening: "/(this )(even(ing)?)\\b/",
-				pmThisEvening: "/(\b\\d(pm)? )(this )(even(ing)?)/",
 				jan: "/jan(uary)?/",
 				feb: "/feb(ruary)?/",
 				mar: "/mar(ch)?/",

@@ -136,9 +136,10 @@
 		if (s instanceof Date) {
 			return s.clone();
 		}
-		if (s.length >= 4 && s.charAt(0) !== "0" && s.charAt(0) !== "+"&& s.charAt(0) !== "-") { // ie: 2004 will pass, 0800 won't.
+		// ie: 2004 will pass, 0800 won't.
+		if (s.length >= 4 && s.charAt(0) !== "0" && s.charAt(0) !== "+"&& s.charAt(0) !== "-") {
 			//  Start with specific formats
-			d = $D.Parsing.ISO.parse(s) || $D.Parsing.Numeric.parse(s);
+			d = $D.Parsing.Numeric.parse(s);
 		}
 		if (d instanceof Date && !isNaN(d.getTime())) {
 			return d;

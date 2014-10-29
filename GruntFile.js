@@ -45,6 +45,9 @@ module.exports = function(grunt) {
 		build_prod: {
 			description: 'Builds production ready files (minified)'
 		},
+		build_moo: {
+			description: 'Builds files for Moo.do (non-minified)'
+		},
 		closurecompiler: {
 			minify: {
 				files: buildMinifyFileList(),
@@ -63,6 +66,8 @@ module.exports = function(grunt) {
 			},
 			core: {
 				src: [
+					'<%= dirs.core %>/moodo_header.js',
+					'<%= dirs.core %>/cache.js',
 					'<%= dirs.core %>/i18n.js',
 					'<%= dirs.core %>/core.js',
 					'<%= dirs.core %>/sugarpak.js',
@@ -73,12 +78,15 @@ module.exports = function(grunt) {
 					'<%= dirs.core %>/parser.js',
 					'<%= dirs.core %>/extras.js',
 					'<%= dirs.core %>/time_span.js',
-					'<%= dirs.core %>/time_period.js'
+					'<%= dirs.core %>/time_period.js',
+					'<%= dirs.core %>/moodo_footer.js'
 				],
 				dest: '<%= dirs.build %>/date-core.js'
 			},
 			basic: {
 				src: [
+					'<%= dirs.core %>/moodo_header.js',
+					'<%= dirs.core %>/cache.js',
 					'<%= dirs.core %>/i18n.js',
 					'<%= dirs.core %>/core.js',
 					'<%= dirs.core %>/sugarpak.js',
@@ -89,7 +97,8 @@ module.exports = function(grunt) {
 					'<%= dirs.core %>/parser.js',
 					'<%= dirs.core %>/extras.js',
 					'<%= dirs.core %>/time_span.js',
-					'<%= dirs.core %>/time_period.js'
+					'<%= dirs.core %>/time_period.js',
+					'<%= dirs.core %>/moodo_footer.js'
 				],
 				dest: '<%= dirs.build %>/date.js'
 			}
@@ -99,6 +108,15 @@ module.exports = function(grunt) {
 				core: '<%= dirs.build %>/date-core.js',
 				src: ['<%= dirs.i18n %>/*.js'],
 				dest: '<%= dirs.build %>/'   // destination *directory*, probably better than specifying same file names twice
+			}
+		},
+		copy: {
+			main: {
+				nonull: true,
+				flatten: true,
+				files: [
+					{ expand: true, cwd: 'build/', src: ['date.js'], dest: 'F:/p/bce/Duchess/public/js/lib/'}
+				]
 			}
 		},
 		shell: {
@@ -132,7 +150,10 @@ module.exports = function(grunt) {
 		grunt.file.delete(dirs.build+'/date-core.js');
 	});
 	grunt.registerMultiTask('build_dev', 'Builds compiled, non-minfied, files for development enviroments', function() {
-		grunt.task.run(['concat:core', 'concat:basic', 'i18n:core']);
+		grunt.task.run(['concat:core', 'concat:basic']);
+	});
+	grunt.registerMultiTask('build_moo', 'Builds compiled, non-minfied, files for development enviroments', function() {
+		grunt.task.run(['concat:core', 'concat:basic', 'copy:main']);
 	});
 	grunt.registerMultiTask('build_prod', 'Rebuilds dev and minifies files for production enviroments', function() {
 		grunt.task.run(['concat:core', 'concat:basic', 'i18n:core', 'closurecompiler:minify']);
@@ -141,10 +162,11 @@ module.exports = function(grunt) {
 
 
 	// now set the default
-	grunt.registerTask('default', ['build_dev']);
+	grunt.registerTask('default', ['build_moo']);
 	// Load the plugin that provides the "minify" task.
 	grunt.loadNpmTasks('grunt-shell');
 	grunt.loadNpmTasks('grunt-closurecompiler');
 	grunt.loadNpmTasks('grunt-contrib-concat');
+	grunt.loadNpmTasks('grunt-contrib-copy');
 	grunt.registerTask('test', ['shell:runTests']);
 };

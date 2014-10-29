@@ -264,7 +264,6 @@
 	 */
 	$P.clone = function () {
 		var tDate = new Date(this.getTime());
-		tDate._explicitTime = this._explicitTime;
 
 		return tDate;
 	};
@@ -329,6 +328,13 @@
 	$P.isToday = $P.isSameDay = function (date) {
 		return this.clone().clearTime().equals((date || new Date()).clone().clearTime());
 	};
+
+	$P.ensureTimeOfDay = function() {
+		if (this.getMilliseconds() === 0)
+		{
+			this.setTime(this.getTime() + 1);
+		}
+	}
 	
 	/**
 	 * Adds the specified number of milliseconds to this instance. 
@@ -508,7 +514,7 @@
 		}
 		if (x.setExplicitTime)
 		{
-			this._explicitTime = true;
+			this.ensureTimeOfDay();
 		}
 		return this;
 	};
@@ -766,7 +772,7 @@
 		}
 
 		if (config.setExplicitTime) {
-			this._explicitTime = true;
+			this.ensureTimeOfDay();
 		}
 
 		return this;

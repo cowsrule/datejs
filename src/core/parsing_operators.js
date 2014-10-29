@@ -96,13 +96,17 @@
 			return rx;
 		},
 		cache: function (rule) {
-			var cache = {}, r = null;
+			var cache = new LRUCache(30), r = null;
 			return function (s) {
 				try {
-					r = cache[s] = (cache[s] || rule.call(this, s));
+					r = cache.get(s);
+					if (!r) {
+						r = rule.call(this, s);
+					}
 				} catch (e) {
-					r = cache[s] = e;
+					r = e;
 				}
+				cache.put(s, r);
 				if (r instanceof $P.Exception) {
 					throw r;
 				} else {

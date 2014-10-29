@@ -17,14 +17,18 @@
 
 	var parseMeridian = function () {
 		if (this.meridian && (this.hour || this.hour === 0)) {
-			if (this.meridian === "a" && this.hour > 11 && Date.Config.strict24hr){
+			if (this.meridian === "a" && this.hour > 11 && Date.Config.strict24hr) {
 				throw "Invalid hour and meridian combination";
-			} else if (this.meridian === "p" && this.hour < 12 && Date.Config.strict24hr){
+			} else if (this.meridian === "p" && this.hour < 12 && Date.Config.strict24hr) {
 				throw "Invalid hour and meridian combination";
 			} else if (this.meridian === "p" && this.hour < 12) {
 				this.hour = this.hour + 12;
 			} else if (this.meridian === "a" && this.hour === 12) {
 				this.hour = 0;
+			}
+		} else if (!this.meridian && (this.hour || this.hour === 0)) {
+			if (this.hour < 8) {
+				this.hour = this.hour + 12;
 			}
 		}
 	};
@@ -232,7 +236,11 @@
 			}
 
 			d = new Date(this.year, this.month, this.day, this.hour, this.minute, this.second, this.millisecond);
-			d._explicitTime = this.setExplicitTime;
+
+			if (this.setExplicitTime)
+			{
+				d.ensureTimeOfDay();
+			}
 
 			if (this.year < 100) {
 				d.setFullYear(this.year); // means years less that 100 are process correctly. JS will parse it otherwise as 1900-1999.
@@ -356,9 +364,7 @@
 				this.year = today.getFullYear() + 1;
 			}
 
-			this._explicitTime = this.setExplicitTime;
 
-			
 			(expression) ? today.add(this) : today.set(this);
 			
 			if (this.timezone) {

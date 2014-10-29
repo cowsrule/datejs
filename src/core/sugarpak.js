@@ -16,8 +16,6 @@
 
 	// private
 	$P._same = false;
-
-	$P._explicitTime = false;
 	
 	// private
 	$P._isSecond = false;
