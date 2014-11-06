@@ -96,8 +96,21 @@
 			return rx;
 		},
 		cache: function (rule) {
-			var cache = new LRUCache(30), r = null;
+			var cache = {}, cache_length = 0, cache_keys = [], CACHE_MAX = Date.Config.CACHE_MAX || 500, r = null;
+			var cacheCheck = function () {
+				if (cache_length === CACHE_MAX) {
+					// kill several keys, don't want to have to do this all the time...
+					for (var i=0; i < 10; i++) {
+						var key = cache_keys.shift();
+						if (key) {
+							delete cache[key];
+							cache_length--;
+						}
+					}
+				}
+			};
 			return function (s) {
+				cacheCheck();
 				try {
 					r = cache.get(s);
 					if (!r) {
@@ -106,7 +119,8 @@
 				} catch (e) {
 					r = e;
 				}
-				cache.put(s, r);
+				cache_length++;
+				cache_keys.push(s);
 				if (r instanceof $P.Exception) {
 					throw r;
 				} else {

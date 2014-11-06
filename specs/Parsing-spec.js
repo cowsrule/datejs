@@ -226,6 +226,20 @@ describe("Parsing Module", function() {
 		});
 	});
 	describe("supports relative dates like", function() {
+		it("last tuesday", function () {
+			var d = Date.parse("last tuesday");
+			var d2 = Date.today();
+			var diff = Math.abs(d.getElapsed(Date.today())/1000/60/60/24); // days
+			expect(d.getDay()).toBe(2);
+			expect(diff).toBeLessThan(7);
+		});
+		it("next tuesday", function () {
+			var d = Date.parse("next tuesday");
+			var d2 = Date.today();
+			var diff = Math.abs(d.getElapsed(Date.today())/1000/60/60/24); // days
+			expect(d.getDay()).toBe(2);
+			expect(diff).toBeLessThan(7);
+		});
 		it("last week", function () {
 			var d = Date.parse("last week");
 			var w = Date.today().addWeeks(-1).getWeek();
@@ -308,15 +322,11 @@ describe("Parsing Module", function() {
 			var d2 = new Date(2011, 11, 30, 16);
 			expect(d2.equals(d)).toBe(true);
 		});
-		it("uses EST correctly when EDT is wrongly specified", function (){
+		it("uses correct timezone when incorect DST timezone is specified", function (){
 			var d = Date.parse("30 Dec 2011 7pm EDT");
 			var d2 = new Date(2011, 11, 30, 16);
 			expect(d2.equals(d)).toBe(true);
 		});
-			// Date.parse("monday 7:00pm edt")
-// Mon Oct 06 2014 19:00:00 GMT-0700 (Pacific Daylight Time)
-// Date.parse("monday 7:00pm pdt")
-// Mon Oct 06 2014 19:00:00 GMT-0700 (Pacific Daylight Time)
 	});
 	describe("parses 'dd MMM yyyy' format correctly", function() {
 		it("30 Dec 2011", function () {

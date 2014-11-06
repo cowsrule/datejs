@@ -81,15 +81,15 @@
 				return $D.today();
 			}
 		},
-		setDaysFromWeekday: function (today, orient) {
-			var gap;
+		setDaysFromWeekday: function (today, orient){
+			var gap, orient = orient || 1;
 			this.unit = "day";
 			gap = ($D.getDayNumberFromName(this.weekday) - today.getDay());
 			this.days = gap ? (gap + (orient * 7)) : (orient * 7);
 			return this;
 		},
 		setMonthsFromMonth: function (today, orient) {
-			var gap;
+			var gap, orient = orient || 1;
 			this.unit = "month";
 			gap = (this.month - today.getMonth());
 			this.months = gap ? ((gap + (orient * 12)) % 12) : (orient * 12);
@@ -358,7 +358,7 @@
 			if (expression && this.timezone && this.day && this.days) {
 				this.day = this.days;
 			}
-
+			
 			if (!givenYear && this.month < today.getMonth())
 			{
 				this.year = today.getFullYear() + 1;
@@ -366,7 +366,7 @@
 
 
 			(expression) ? today.add(this) : today.set(this);
-			
+
 			if (this.timezone) {
 				this.timezone = this.timezone.toUpperCase();
 				var offset = $D.getTimezoneOffset(this.timezone);
@@ -376,11 +376,12 @@
 					timezone = $D.getTimezoneAbbreviation(offset, today.isDaylightSavingTime());
 					if (timezone !== this.timezone) {
 						// bugger, we're in a place where things like EST vs EDT matters.
-						(today.isDaylightSaveTime) ? today.addHours(-1) : today.addHours(1); 
+						(today.isDaylightSavingTime()) ? today.addHours(-1) : today.addHours(1); 
 					}
 				}
 				today.setTimezoneOffset(offset);
 			}
+
 			return today;
 		}
 	};

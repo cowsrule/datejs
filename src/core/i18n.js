@@ -320,6 +320,7 @@
 			} else {
 				if (!(!!Date.CultureStrings && !!Date.CultureStrings[code])) {
 					debugger;
+						return false;
 				}
 			}
 			$D.Parsing.Normalizer.buildReplaceData(); // rebuild normalizer strings
