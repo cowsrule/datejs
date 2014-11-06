@@ -760,7 +760,7 @@
 				} else if (key === "year"){
 					getFunc = "getFullYear";
 				}
-                if (key !== "day" && key !== "timezone" && key !== "timezoneOffset"  && key !== "week" && key !== "hour && key !== "setExplicitTime") {
+                if (key !== "day" && key !== "timezone" && key !== "timezoneOffset"  && key !== "week" && key !== "hour" && key !== "setExplicitTime") {
 					this[addFunc](config[key] - this[getFunc]());
 				} else if ( key === "timezone"|| key === "timezoneOffset" || key === "week" || key === "hour") {
 					this["set"+name](config[key]);

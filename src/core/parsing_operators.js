@@ -112,12 +112,9 @@
 			return function (s) {
 				cacheCheck();
 				try {
-					r = cache.get(s);
-					if (!r) {
-						r = rule.call(this, s);
-					}
+					r = cache[s] = (cache[s] || rule.call(this, s));
 				} catch (e) {
-					r = e;
+					r = cache[s] = e;
 				}
 				cache_length++;
 				cache_keys.push(s);

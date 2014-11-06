@@ -10,126 +10,6 @@
 
 this.dateLibLoaded = true;
 
-
-/**
- * A doubly linked list-based Least Recently Used (LRU) cache. Will keep most
- * recently used items while discarding least recently used items when its limit
- * is reached.
- *
- * Licensed under MIT. Copyright (c) 2010 Rasmus Andersson <http://hunch.se/>
- * See README.md for details.
- *
- * Illustration of the design:
- *
- *       entry             entry             entry             entry
- *       ______            ______            ______            ______
- *      | head |.newer => |      |.newer => |      |.newer => | tail |
- *      |  A   |          |  B   |          |  C   |          |  D   |
- *      |______| <= older.|______| <= older.|______| <= older.|______|
- *
- *  removed  <--  <--  <--  <--  <--  <--  <--  <--  <--  <--  <--  added
- */
-function LRUCache (limit) {
-  // Current size of the cache. (Read-only).
-  this.size = 0;
-  // Maximum number of items this cache can hold.
-  this.limit = limit;
-  this._keymap = {};
-}
-
-/**
- * Put <value> into the cache associated with <key>. Returns the entry which was
- * removed to make room for the new entry. Otherwise undefined is returned
- * (i.e. if there was enough room already).
- */
-LRUCache.prototype.put = function(key, value) {
-  var entry = {key:key, value:value};
-  // Note: No protection agains replacing, and thus orphan entries. By design.
-  this._keymap[key] = entry;
-  if (this.tail) {
-    // link previous tail to the new tail (entry)
-    this.tail.newer = entry;
-    entry.older = this.tail;
-  } else {
-    // we're first in -- yay
-    this.head = entry;
-  }
-  // add new entry to the end of the linked list -- it's now the freshest entry.
-  this.tail = entry;
-  if (this.size === this.limit) {
-    // we hit the limit -- remove the head
-    return this.shift();
-  } else {
-    // increase the size counter
-    this.size++;
-  }
-};
-
-/**
- * Purge the least recently used (oldest) entry from the cache. Returns the
- * removed entry or undefined if the cache was empty.
- *
- * If you need to perform any form of finalization of purged items, this is a
- * good place to do it. Simply override/replace this function:
- *
- *   var c = new LRUCache(123);
- *   c.shift = function() {
- *     var entry = LRUCache.prototype.shift.call(this);
- *     doSomethingWith(entry);
- *     return entry;
- *   }
- */
-LRUCache.prototype.shift = function() {
-  // todo: handle special case when limit == 1
-  var entry = this.head;
-  if (entry) {
-    if (this.head.newer) {
-      this.head = this.head.newer;
-      this.head.older = undefined;
-    } else {
-      this.head = undefined;
-    }
-    // Remove last strong reference to <entry> and remove links from the purged
-    // entry being returned:
-    entry.newer = entry.older = undefined;
-    // delete is slow, but we need to do this to avoid uncontrollable growth:
-    delete this._keymap[entry.key];
-  }
-  return entry;
-};
-
-/**
- * Get and register recent use of <key>. Returns the value associated with <key>
- * or undefined if not in cache.
- */
-LRUCache.prototype.get = function(key, returnEntry) {
-  // First, find our cache entry
-  var entry = this._keymap[key];
-  if (entry === undefined) return; // Not cached. Sorry.
-  // As <key> was found in the cache, register it as being requested recently
-  if (entry === this.tail) {
-    // Already the most recenlty used entry, so no need to update the list
-    return returnEntry ? entry : entry.value;
-  }
-  // HEAD--------------TAIL
-  //   <.older   .newer>
-  //  <--- add direction --
-  //   A  B  C  <D>  E
-  if (entry.newer) {
-    if (entry === this.head)
-      this.head = entry.newer;
-    entry.newer.older = entry.older; // C <-- E.
-  }
-  if (entry.older)
-    entry.older.newer = entry.newer; // C. --> E
-  entry.newer = undefined; // D --x
-  entry.older = this.tail; // D. --> E
-  if (this.tail)
-    this.tail.newer = entry; // E. <-- D
-  this.tail = entry;
-  return returnEntry ? entry : entry.value;
-};
-
 (function () {
 	var $D = Date;
 	var lang = Date.CultureStrings ? Date.CultureStrings.lang : null;
@@ -452,6 +332,7 @@ LRUCache.prototype.get = function(key, returnEntry) {
 			} else {
 				if (!(!!Date.CultureStrings && !!Date.CultureStrings[code])) {
 					debugger;
+						return false;
 				}
 			}
 			$D.Parsing.Normalizer.buildReplaceData(); // rebuild normalizer strings
@@ -874,6 +755,7 @@ LRUCache.prototype.get = function(key, returnEntry) {
 			if (value > 0) {
 				this.next().monday();
 				this.addDays(-1);
+				day = this.getDay();
 			}
 		}
 
@@ -1184,8 +1066,8 @@ LRUCache.prototype.get = function(key, returnEntry) {
 		var result = {}, self = this, prop, testFunc;
 		testFunc = function (prop, func, value) {
 			if (prop === "day") {
-				var month = (obj.month !== undefined) ? obj.month - self.getMonth() : self.getMonth();
-				var year = (obj.year !== undefined) ? obj.year - self.getFullYear() : self.getFullYear();
+				var month = (obj.month !== undefined) ? obj.month : self.getMonth();
+				var year = (obj.year !== undefined) ? obj.year : self.getFullYear();
 				return $D[func](value, year, month);
 			} else {
 				return $D[func](value);
@@ -1194,6 +1076,7 @@ LRUCache.prototype.get = function(key, returnEntry) {
 		for (prop in obj) {
 			if (hasOwnProperty.call(obj, prop)) {
 				var func = "validate" + prop.charAt(0).toUpperCase() + prop.slice(1);
+
 				if ($D[func] && obj[prop] !== null && testFunc(prop, func, obj[prop])) {
 					result[prop] = obj[prop];
 				}
@@ -1231,9 +1114,9 @@ LRUCache.prototype.get = function(key, returnEntry) {
 				} else if (key === "year"){
 					getFunc = "getFullYear";
 				}
-                if (key !== "day" && key !== "timezone" && key !== "timezoneOffset"  && key !== "week" && key !== "setExplicitTime") {
+                if (key !== "day" && key !== "timezone" && key !== "timezoneOffset"  && key !== "week" && key !== "hour" && key !== "setExplicitTime") {
 					this[addFunc](config[key] - this[getFunc]());
-				} else if ( key === "timezone" || key === "timezoneOffset" || key === "week") {
+				} else if ( key === "timezone"|| key === "timezoneOffset" || key === "week" || key === "hour") {
 					this["set"+name](config[key]);
 				}
 			}
@@ -2544,17 +2427,28 @@ LRUCache.prototype.get = function(key, returnEntry) {
 			return rx;
 		},
 		cache: function (rule) {
-			var cache = new LRUCache(30), r = null;
-			return function (s) {
-				try {
-					r = cache.get(s);
-					if (!r) {
-						r = rule.call(this, s);
+			var cache = {}, cache_length = 0, cache_keys = [], CACHE_MAX = Date.Config.CACHE_MAX || 500, r = null;
+			var cacheCheck = function () {
+				if (cache_length === CACHE_MAX) {
+					// kill several keys, don't want to have to do this all the time...
+					for (var i=0; i < 10; i++) {
+						var key = cache_keys.shift();
+						if (key) {
+							delete cache[key];
+							cache_length--;
+						}
 					}
-				} catch (e) {
-					r = e;
 				}
-				cache.put(s, r);
+			};
+			return function (s) {
+				cacheCheck();
+				try {
+					r = cache[s] = (cache[s] || rule.call(this, s));
+				} catch (e) {
+					r = cache[s] = e;
+				}
+				cache_length++;
+				cache_keys.push(s);
 				if (r instanceof $P.Exception) {
 					throw r;
 				} else {
@@ -2976,15 +2870,15 @@ LRUCache.prototype.get = function(key, returnEntry) {
 				return $D.today();
 			}
 		},
-		setDaysFromWeekday: function (today, orient) {
-			var gap;
+		setDaysFromWeekday: function (today, orient){
+			var gap, orient = orient || 1;
 			this.unit = "day";
 			gap = ($D.getDayNumberFromName(this.weekday) - today.getDay());
 			this.days = gap ? (gap + (orient * 7)) : (orient * 7);
 			return this;
 		},
 		setMonthsFromMonth: function (today, orient) {
-			var gap;
+			var gap, orient = orient || 1;
 			this.unit = "month";
 			gap = (this.month - today.getMonth());
 			this.months = gap ? ((gap + (orient * 12)) % 12) : (orient * 12);
@@ -3253,7 +3147,7 @@ LRUCache.prototype.get = function(key, returnEntry) {
 			if (expression && this.timezone && this.day && this.days) {
 				this.day = this.days;
 			}
-
+			
 			if (!givenYear && this.month < today.getMonth())
 			{
 				this.year = today.getFullYear() + 1;
@@ -3261,7 +3155,7 @@ LRUCache.prototype.get = function(key, returnEntry) {
 
 
 			(expression) ? today.add(this) : today.set(this);
-			
+
 			if (this.timezone) {
 				this.timezone = this.timezone.toUpperCase();
 				var offset = $D.getTimezoneOffset(this.timezone);
@@ -3271,11 +3165,12 @@ LRUCache.prototype.get = function(key, returnEntry) {
 					timezone = $D.getTimezoneAbbreviation(offset, today.isDaylightSavingTime());
 					if (timezone !== this.timezone) {
 						// bugger, we're in a place where things like EST vs EDT matters.
-						(today.isDaylightSaveTime) ? today.addHours(-1) : today.addHours(1); 
+						(today.isDaylightSavingTime()) ? today.addHours(-1) : today.addHours(1); 
 					}
 				}
 				today.setTimezoneOffset(offset);
 			}
+
 			return today;
 		}
 	};
@@ -3939,7 +3834,8 @@ LRUCache.prototype.get = function(key, returnEntry) {
 	 * @return {String}  A string representation of the current Date object.
 	 */
 	$D.strftime = function (format, time) {
-		return new Date(time * 1000)._format(format);
+		var d = Date.parse(time);
+		return d._format(format);
 	};
 	/**
 	 * Parse any textual datetime description into a Unix timestamp. 
@@ -3955,7 +3851,6 @@ LRUCache.prototype.get = function(key, returnEntry) {
 	 */
 	$D.strtotime = function (time) {
 		var d = $D.parse(time);
-		d.addMinutes(d.getTimezoneOffset() * -1);
 		return Math.round($D.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate(), d.getUTCHours(), d.getUTCMinutes(), d.getUTCSeconds(), d.getUTCMilliseconds()) / 1000);
 	};
 	/**
