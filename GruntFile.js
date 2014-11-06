@@ -67,7 +67,6 @@ module.exports = function(grunt) {
 			core: {
 				src: [
 					'<%= dirs.core %>/moodo_header.js',
-					'<%= dirs.core %>/cache.js',
 					'<%= dirs.core %>/i18n.js',
 					'<%= dirs.core %>/core.js',
 					'<%= dirs.core %>/sugarpak.js',
@@ -86,7 +85,6 @@ module.exports = function(grunt) {
 			basic: {
 				src: [
 					'<%= dirs.core %>/moodo_header.js',
-					'<%= dirs.core %>/cache.js',
 					'<%= dirs.core %>/i18n.js',
 					'<%= dirs.core %>/core.js',
 					'<%= dirs.core %>/sugarpak.js',
