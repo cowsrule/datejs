@@ -357,11 +357,4 @@
     {
         return true;
     };
-
-
-
-		if (config.setExplicitTime) {
-			this.ensureTimeOfDay();
-		}
-
 }());

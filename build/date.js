@@ -11,348 +11,6 @@
 this.dateLibLoaded = true;
 
 (function () {
-	var $D = Date;
-	var lang = Date.CultureStrings ? Date.CultureStrings.lang : null;
-	var loggedKeys = {}; // for debug purposes.
-	var getText = {
-		getFromKey: function (key, countryCode) {
-			var output;
-			if (Date.CultureStrings && Date.CultureStrings[countryCode] && Date.CultureStrings[countryCode][key]) {
-				output = Date.CultureStrings[countryCode][key];
-			} else {
-				output = getText.buildFromDefault(key);
-			}
-			if (key.charAt(0) === "/") { // Assume it's a regex
-				output = getText.buildFromRegex(key, countryCode);
-			}
-			return output;
-		},
-		getFromObjectValues: function (obj, countryCode) {
-			var key, output = {};
-			for(key in obj) {
-				if (obj.hasOwnProperty(key)) {
-					output[key] = getText.getFromKey(obj[key], countryCode);
-				}
-			}
-			return output;
-		},
-		getFromObjectKeys: function (obj, countryCode) {
-			var key, output = {};
-			for(key in obj) {
-				if (obj.hasOwnProperty(key)) {
-					output[getText.getFromKey(key, countryCode)] = obj[key];
-				}
-			}
-			return output;
-		},
-		getFromArray: function (arr, countryCode) {
-			var output = [];
-			for (var i=0; i < arr.length; i++){
-				if (i in arr) {
-					output[i] = getText.getFromKey(arr[i], countryCode);
-				}
-			}
-			return output;
-		},
-		buildFromDefault: function (key) {
-			var output, length, split, last;
-			switch(key) {
-				case "name":
-					output = "en-US";
-					break;
-				case "englishName":
-					output = "English (United States)";
-					break;
-				case "nativeName":
-					output = "English (United States)";
-					break;
-				case "twoDigitYearMax":
-					output = 2049;
-					break;
-				case "firstDayOfWeek":
-					output = 0;
-					break;
-				default:
-					output = key;
-					split = key.split("_");
-					length = split.length;
-					if (length > 1 && key.charAt(0) !== "/") {
-						// if the key isn't a regex and it has a split.
-						last = split[(length - 1)].toLowerCase();
-						if (last === "initial" || last === "abbr") {
-							output = split[0];
-						}
-					}
-					break;
-			}
-			return output;
-		},
-		buildFromRegex: function (key, countryCode) {
-			var output;
-			if (Date.CultureStrings && Date.CultureStrings[countryCode] && Date.CultureStrings[countryCode][key]) {
-				output = new RegExp(Date.CultureStrings[countryCode][key], "i");
-			} else {
-				output = new RegExp(key.replace(new RegExp("/", "g"),""), "i");
-			}
-			return output;
-		}
-	};
-
-	var shallowMerge = function (obj1, obj2) {
-		for (var attrname in obj2) {
-			if (obj2.hasOwnProperty(attrname)) {
-				obj1[attrname] = obj2[attrname];
-			}
-		}
-	};
-
-	var __ = function (key, language) {
-		var countryCode = (language) ? language : lang;
-		loggedKeys[key] = key;
-		if (typeof key === "object") {
-			if (key instanceof Array) {
-				return getText.getFromArray(key, countryCode);
-			} else {
-				return getText.getFromObjectKeys(key, countryCode);
-			}
-		} else {
-			return getText.getFromKey(key, countryCode);
-		}
-	};
-
-	var buildInfo = {
-		buildFromMethodHash: function (obj) {
-			var key;
-			for(key in obj) {
-				if (obj.hasOwnProperty(key)) {
-					obj[key] = buildInfo[obj[key]]();
-				}
-			}
-			return obj;
-		},
-		timeZoneDST: function () {
-			var DST = {
-				"CHADT": "+1345",
-				"NZDT": "+1300",
-				"AEDT": "+1100",
-				"ACDT": "+1030",
-				"AZST": "+0500",
-				"IRDT": "+0430",
-				"EEST": "+0300",
-				"CEST": "+0200",
-				"BST": "+0100",
-				"PMDT": "-0200",
-				"ADT": "-0300",
-				"NDT": "-0230",
-				"EDT": "-0400",
-				"CDT": "-0500",
-				"MDT": "-0600",
-				"PDT": "-0700",
-				"AKDT": "-0800",
-				"HADT": "-0900"
-			};
-			return __(DST);
-		},
-		timeZoneStandard: function () {
-			var standard = {
-				"LINT": "+1400",
-				"TOT": "+1300",
-				"CHAST": "+1245",
-				"NZST": "+1200",
-				"NFT": "+1130",
-				"SBT": "+1100",
-				"AEST": "+1000",
-				"ACST": "+0930",
-				"JST": "+0900",
-				"CWST": "+0845",
-				"CT": "+0800",
-				"ICT": "+0700",
-				"MMT": "+0630",
-				"BST": "+0600",
-				"NPT": "+0545",
-				"IST": "+0530",
-				"PKT": "+0500",
-				"AFT": "+0430",
-				"MSK": "+0400",
-				"IRST": "+0330",
-				"FET": "+0300",
-				"EET": "+0200",
-				"CET": "+0100",
-				"GMT": "+0000",
-				"UTC": "+0000",
-				"CVT": "-0100",
-				"GST": "-0200",
-				"BRT": "-0300",
-				"NST": "-0330",
-				"AST": "-0400",
-				"EST": "-0500",
-				"CST": "-0600",
-				"MST": "-0700",
-				"PST": "-0800",
-				"AKST": "-0900",
-				"MIT": "-0930",
-				"HST": "-1000",
-				"SST": "-1100",
-				"BIT": "-1200"
-			};
-			return __(standard);
-		},
-		timeZones: function (data) {
-			var zone;
-			data.timezones = [];
-			for (zone in data.abbreviatedTimeZoneStandard) {
-				if (data.abbreviatedTimeZoneStandard.hasOwnProperty(zone)) {
-					data.timezones.push({ name: zone, offset: data.abbreviatedTimeZoneStandard[zone]});
-				}
-			}
-			for (zone in data.abbreviatedTimeZoneDST) {
-				if (data.abbreviatedTimeZoneDST.hasOwnProperty(zone)) {
-					data.timezones.push({ name: zone, offset: data.abbreviatedTimeZoneDST[zone], dst: true});
-				}
-			}
-			return data.timezones;
-		},
-		days: function () {
-			return __(["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]);
-		},
-		dayAbbr: function () {
-			return __(["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]);
-		},
-		dayShortNames: function () {
-			return __(["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"]);
-		},
-		dayFirstLetters: function () {
-			return __(["S_Sun_Initial", "M_Mon_Initial", "T_Tues_Initial", "W_Wed_Initial", "T_Thu_Initial", "F_Fri_Initial", "S_Sat_Initial"]);
-		},
-		months: function () {
-			return __(["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]);
-		},
-		monthAbbr: function () {
-			return __(["Jan_Abbr", "Feb_Abbr", "Mar_Abbr", "Apr_Abbr", "May_Abbr", "Jun_Abbr", "Jul_Abbr", "Aug_Abbr", "Sep_Abbr", "Oct_Abbr", "Nov_Abbr", "Dec_Abbr"]);
-		},
-		formatPatterns: function () {
-			return getText.getFromObjectValues({
-				shortDate: "M/d/yyyy",
-				longDate: "dddd, MMMM dd, yyyy",
-				shortTime: "h:mm tt",
-				longTime: "h:mm:ss tt",
-				fullDateTime: "dddd, MMMM dd, yyyy h:mm:ss tt",
-				sortableDateTime: "yyyy-MM-ddTHH:mm:ss",
-				universalSortableDateTime: "yyyy-MM-dd HH:mm:ssZ",
-				rfc1123: "ddd, dd MMM yyyy HH:mm:ss",
-				monthDay: "MMMM dd",
-				monthDayShortTime: "MM/dd",
-				monthDayYear: "MM/dd/yy",
-				yearMonth: "MMMM, yyyy"
-			}, Date.i18n.currentLanguage());
-		},
-		regex: function () {
-			return getText.getFromObjectValues({
-				thisMorning: "/(this )(morn(ing)?)\\b/",
-				thisEvening: "/(this )(even(ing)?)\\b/",
-				jan: "/jan(uary)?/",
-				feb: "/feb(ruary)?/",
-				mar: "/mar(ch)?/",
-				apr: "/apr(il)?/",
-				may: "/may/",
-				jun: "/jun(e)?/",
-				jul: "/jul(y)?/",
-				aug: "/aug(ust)?/",
-				sep: "/sep(t(ember)?)?/",
-				oct: "/oct(ober)?/",
-				nov: "/nov(ember)?/",
-				dec: "/dec(ember)?/",
-				sun: "/^sun(day)?/",
-				mon: "/^mon(day)?/",
-				tue: "/^tue(s(day)?)?/",
-				wed: "/^wed(nesday)?/",
-				thu: "/^thu(rsday)?/",
-				fri: "/^fri(day)?/",
-				sat: "/^sat(urday)?/",
-				future: "/^next/",
-				past: "/^last|past|prev(ious)?/",
-				yesterday: "/^yesterday/",
-				today: "/^today/",
-				tomorrow: "/^tom(orrow)?/",
-				soon: "/^soon/",
-				later: "/^later/",
-				now: "/^now/",
-				shortMeridian: "/^(a|p)/",
-				longMeridian: "/^(a\\.?m?\\.?|p\\.?m?\\.?)/",
-				timezone: "/^((e(s|d)t|c(s|d)t|m(s|d)t|p(s|d)t)|((gmt)?\\s*(\\+|\\-)\\s*\\d\\d\\d\\d?)|gmt|utc)/",
-				ordinalSuffix: "/^\\s*(st|nd|rd|th)/",
-				timeContext: "/^\\s*(\\:|a(?!u|p)|p)/"
-			}, Date.i18n.currentLanguage());
-		}
-	};
-
-	var CultureInfo = function () {
-		var info = getText.getFromObjectValues({
-			name: "name",
-			englishName: "englishName",
-			nativeName: "nativeName",
-			amDesignator: "AM",
-			pmDesignator: "PM",
-			firstDayOfWeek: "firstDayOfWeek",
-			twoDigitYearMax: "twoDigitYearMax",
-			dateElementOrder: "mdy"
-		}, Date.i18n.currentLanguage());
-
-		var constructedInfo = buildInfo.buildFromMethodHash({
-			dayNames: "days",
-			abbreviatedDayNames: "dayAbbr",
-			shortestDayNames: "dayShortNames",
-			firstLetterDayNames: "dayFirstLetters",
-			monthNames: "months",
-			abbreviatedMonthNames: "monthAbbr",
-			formatPatterns: "formatPatterns",
-			regexPatterns: "regex",
-			abbreviatedTimeZoneDST: "timeZoneDST",
-			abbreviatedTimeZoneStandard: "timeZoneStandard"
-		});
-
-		shallowMerge(info, constructedInfo);
-		buildInfo.timeZones(info);
-		return info;
-	};
-
-	$D.i18n = {
-		__: function (key, lang) {
-			return __(key, lang);
-		},
-		currentLanguage: function () {
-			return lang || "en-US";
-		},
-		setLanguage: function (code, force, cb) {
-			if (force || code === "en-US" || (!!Date.CultureStrings && !!Date.CultureStrings[code])) {
-				lang = code;
-				Date.CultureStrings = Date.CultureStrings || {};
-				Date.CultureStrings.lang = code;
-				Date.CultureInfo = new CultureInfo();
-			} else {
-				if (!(!!Date.CultureStrings && !!Date.CultureStrings[code])) {
-					debugger;
-						return false;
-				}
-			}
-			$D.Parsing.Normalizer.buildReplaceData(); // rebuild normalizer strings
-			if ($D.Grammar) {
-				$D.Grammar.buildGrammarFormats(); // so we can parse those strings...
-			}
-			if (cb) {
-				cb();
-			}
-		},
-		getLoggedKeys: function () {
-			return loggedKeys;
-		},
-		updateCultureInfo: function () {
-			Date.CultureInfo = new CultureInfo();
-		}
-	};
-	$D.i18n.updateCultureInfo(); // run automatically
-}());
-(function () {
 	var $D = Date,
 		$P = $D.prototype,
 		p = function (s, l) {
@@ -422,31 +80,6 @@ this.dateLibLoaded = true;
 	};
 	$D.initOverloads();
 
-	/**
-	 * Resets the time of this Date object to 12:00 AM (00:00), which is the start of the day.
-	 * @param {Boolean}  .clone() this date instance before clearing Time
-	 * @return {Date}    this
-	 */
-	$P.clearTime = function () {
-		this.setHours(0);
-		this.setMinutes(0);
-		this.setSeconds(0);
-		this.setMilliseconds(0);
-		return this;
-	};
-
-	/**
-	 * Resets the time of this Date object to the current time ('now').
-	 * @return {Date}    this
-	 */
-	$P.setTimeToNow = function () {
-		var n = new Date();
-		this.setHours(n.getHours());
-		this.setMinutes(n.getMinutes());
-		this.setSeconds(n.getSeconds());
-		this.setMilliseconds(n.getMilliseconds());
-		return this;
-	};
 
 	/** 
 	 * Gets a date that is set to the current date. The time is set to the start of the day (00:00 or 12:00 AM).
@@ -612,14 +245,195 @@ this.dateLibLoaded = true;
 		return Math.floor((qEnd - d) / 8.64e7);
 	};
 
+
+		return tDate;
+	$P.ensureTimeOfDay = function() {
+		if (this.getMilliseconds() === 0)
+		{
+			this.setTime(this.getTime() + 1);
+		}
+	}
+	
+		if (x.setExplicitTime)
+		{
+			this.ensureTimeOfDay();
+		}
+	// private
+	var validate = function (n, min, max, name) {
+		name = name ? name : "Object";
+		if (typeof n === "undefined") {
+			return false;
+		} else if (typeof n !== "number") {
+			throw new TypeError(n + " is not a Number.");
+		} else if (n < min || n > max) {
+			// As failing validation is *not* an exceptional circumstance 
+			// lets not throw a RangeError Exception here. 
+			// It's semantically correct but it's not sensible.
+			return false;
+		}
+		return true;
+	};
+
+	/**
+	 * Validates the number is within an acceptable range for milliseconds [0-999].
+	 * @param {Number}   The number to check if within range.
+	 * @return {Boolean} true if within range, otherwise false.
+	 */
+	$D.validateMillisecond = function (value) {
+		return validate(value, 0, 999, "millisecond");
+	};
+
+	/**
+	 * Validates the number is within an acceptable range for seconds [0-59].
+	 * @param {Number}   The number to check if within range.
+	 * @return {Boolean} true if within range, otherwise false.
+	 */
+	$D.validateSecond = function (value) {
+		return validate(value, 0, 59, "second");
+	};
+
+	/**
+	 * Validates the number is within an acceptable range for minutes [0-59].
+	 * @param {Number}   The number to check if within range.
+	 * @return {Boolean} true if within range, otherwise false.
+	 */
+	$D.validateMinute = function (value) {
+		return validate(value, 0, 59, "minute");
+	};
+
+	/**
+	 * Validates the number is within an acceptable range for hours [0-23].
+	 * @param {Number}   The number to check if within range.
+	 * @return {Boolean} true if within range, otherwise false.
+	 */
+	$D.validateHour = function (value) {
+		return validate(value, 0, 23, "hour");
+	};
+
+	/**
+	 * Validates the number is within an acceptable range for the days in a month [0-MaxDaysInMonth].
+	 * @param {Number}   The number to check if within range.
+	 * @return {Boolean} true if within range, otherwise false.
+	 */
+	$D.validateDay = function (value, year, month) {
+		if (year === undefined || year === null || month === undefined || month === null) { return false;}
+		return validate(value, 1, $D.getDaysInMonth(year, month), "day");
+	};
+
+	/**
+	 * Validates the number is within an acceptable range for months [0-11].
+	 * @param {Number}   The number to check if within range.
+	 * @return {Boolean} true if within range, otherwise false.
+	 */
+	$D.validateWeek = function (value) {
+		return validate(value, 0, 53, "week");
+	};
+
+	/**
+	 * Validates the number is within an acceptable range for months [0-11].
+	 * @param {Number}   The number to check if within range.
+	 * @return {Boolean} true if within range, otherwise false.
+	 */
+	$D.validateMonth = function (value) {
+		return validate(value, 0, 11, "month");
+	};
+
+	/**
+	 * Validates the number is within an acceptable range for years.
+	 * @param {Number}   The number to check if within range.
+	 * @return {Boolean} true if within range, otherwise false.
+	 */
+	$D.validateYear = function (value) {
+		/**
+		 * Per ECMAScript spec the range of times supported by Date objects is 
+		 * exactly -100,000,000 days to +100,000,000 days measured relative to 
+		 * midnight at the beginning of 01 January, 1970 UTC. 
+		 * This gives a range of 8,640,000,000,000,000 milliseconds to either 
+		 * side of 01 January, 1970 UTC.
+		 *
+		 * Earliest possible date: Tue, 20 Apr 271,822 B.C. 00:00:00 UTC
+		 * Latest possible date: Sat, 13 Sep 275,760 00:00:00 UTC
+		 */
+		return validate(value, -271822, 275760, "year");
+	};
+	$D.validateTimezone = function(value) {
+		var timezones = {"ACDT":1,"ACST":1,"ACT":1,"ADT":1,"AEDT":1,"AEST":1,"AFT":1,"AKDT":1,"AKST":1,"AMST":1,"AMT":1,"ART":1,"AST":1,"AWDT":1,"AWST":1,"AZOST":1,"AZT":1,"BDT":1,"BIOT":1,"BIT":1,"BOT":1,"BRT":1,"BST":1,"BTT":1,"CAT":1,"CCT":1,"CDT":1,"CEDT":1,"CEST":1,"CET":1,"CHADT":1,"CHAST":1,"CHOT":1,"ChST":1,"CHUT":1,"CIST":1,"CIT":1,"CKT":1,"CLST":1,"CLT":1,"COST":1,"COT":1,"CST":1,"CT":1,"CVT":1,"CWST":1,"CXT":1,"DAVT":1,"DDUT":1,"DFT":1,"EASST":1,"EAST":1,"EAT":1,"ECT":1,"EDT":1,"EEDT":1,"EEST":1,"EET":1,"EGST":1,"EGT":1,"EIT":1,"EST":1,"FET":1,"FJT":1,"FKST":1,"FKT":1,"FNT":1,"GALT":1,"GAMT":1,"GET":1,"GFT":1,"GILT":1,"GIT":1,"GMT":1,"GST":1,"GYT":1,"HADT":1,"HAEC":1,"HAST":1,"HKT":1,"HMT":1,"HOVT":1,"HST":1,"ICT":1,"IDT":1,"IOT":1,"IRDT":1,"IRKT":1,"IRST":1,"IST":1,"JST":1,"KGT":1,"KOST":1,"KRAT":1,"KST":1,"LHST":1,"LINT":1,"MAGT":1,"MART":1,"MAWT":1,"MDT":1,"MET":1,"MEST":1,"MHT":1,"MIST":1,"MIT":1,"MMT":1,"MSK":1,"MST":1,"MUT":1,"MVT":1,"MYT":1,"NCT":1,"NDT":1,"NFT":1,"NPT":1,"NST":1,"NT":1,"NUT":1,"NZDT":1,"NZST":1,"OMST":1,"ORAT":1,"PDT":1,"PET":1,"PETT":1,"PGT":1,"PHOT":1,"PHT":1,"PKT":1,"PMDT":1,"PMST":1,"PONT":1,"PST":1,"PYST":1,"PYT":1,"RET":1,"ROTT":1,"SAKT":1,"SAMT":1,"SAST":1,"SBT":1,"SCT":1,"SGT":1,"SLST":1,"SRT":1,"SST":1,"SYOT":1,"TAHT":1,"THA":1,"TFT":1,"TJT":1,"TKT":1,"TLT":1,"TMT":1,"TOT":1,"TVT":1,"UCT":1,"ULAT":1,"UTC":1,"UYST":1,"UYT":1,"UZT":1,"VET":1,"VLAT":1,"VOLT":1,"VOST":1,"VUT":1,"WAKT":1,"WAST":1,"WAT":1,"WEDT":1,"WEST":1,"WET":1,"WST":1,"YAKT":1,"YEKT":1,"Z":1};
+		return (timezones[value] === 1);
+	};
+	$D.validateTimezoneOffset = function(value) {
+		// timezones go from +14hrs to -12hrs, the +X hours are negative offsets.
+		return (value > -841 && value < 721);
+	};
+
+    $D.validateSetExplicitTime = function(value)
+    {
+        return true;
+    };
+}());
+
+(function () {
+	var $D = Date,
+		$P = $D.prototype,
+		p = function (s, l) {
+			if (!l) {
+				l = 2;
+			}
+			return ("000" + s).slice(l * -1);
+		};
+
+	var validateConfigObject = function (obj) {
+		var result = {}, self = this, prop, testFunc;
+		testFunc = function (prop, func, value) {
+			if (prop === "day") {
+				var month = (obj.month !== undefined) ? obj.month : self.getMonth();
+				var year = (obj.year !== undefined) ? obj.year : self.getFullYear();
+				return $D[func](value, year, month);
+			} else {
+				return $D[func](value);
+			}
+		};
+		for (prop in obj) {
+			if (hasOwnProperty.call(obj, prop)) {
+				var func = "validate" + prop.charAt(0).toUpperCase() + prop.slice(1);
+
+				if ($D[func] && obj[prop] !== null && testFunc(prop, func, obj[prop])) {
+					result[prop] = obj[prop];
+				}
+			}
+		}
+		return result;
+	};
+	/**
+	 * Resets the time of this Date object to 12:00 AM (00:00), which is the start of the day.
+	 * @param {Boolean}  .clone() this date instance before clearing Time
+	 * @return {Date}    this
+	 */
+	$P.clearTime = function () {
+		this.setHours(0);
+		this.setMinutes(0);
+		this.setSeconds(0);
+		this.setMilliseconds(0);
+		return this;
+	};
+
+	/**
+	 * Resets the time of this Date object to the current time ('now').
+	 * @return {Date}    this
+	 */
+	$P.setTimeToNow = function () {
+		var n = new Date();
+		this.setHours(n.getHours());
+		this.setMinutes(n.getMinutes());
+		this.setSeconds(n.getSeconds());
+		this.setMilliseconds(n.getMilliseconds());
+		return this;
+	};
 	/**
 	 * Returns a new Date object that is an exact date and time copy of the original instance.
 	 * @return {Date}    A new Date instance
 	 */
 	$P.clone = function () {
-		var tDate = new Date(this.getTime());
-
-		return tDate;
+		return new Date(this.getTime());
 	};
 
 	/**
@@ -682,13 +496,6 @@ this.dateLibLoaded = true;
 	$P.isToday = $P.isSameDay = function (date) {
 		return this.clone().clearTime().equals((date || new Date()).clone().clearTime());
 	};
-
-	$P.ensureTimeOfDay = function() {
-		if (this.getMilliseconds() === 0)
-		{
-			this.setTime(this.getTime() + 1);
-		}
-	}
 	
 	/**
 	 * Adds the specified number of milliseconds to this instance. 
@@ -784,6 +591,7 @@ this.dateLibLoaded = true;
 		if (!value) { return this; }
 		return this.addDays(value * 7);
 	};
+
 
 	/**
 	 * Adds the specified number of months to this instance. 
@@ -949,207 +757,6 @@ this.dateLibLoaded = true;
 		return Date.getDaysLeftInQuarter(this);
 	};
 
-	// private
-	var validate = function (n, min, max, name) {
-		name = name ? name : "Object";
-		if (typeof n === "undefined") {
-			return false;
-		} else if (typeof n !== "number") {
-			throw new TypeError(n + " is not a Number.");
-		} else if (n < min || n > max) {
-			// As failing validation is *not* an exceptional circumstance 
-			// lets not throw a RangeError Exception here. 
-			// It's semantically correct but it's not sensible.
-			return false;
-		}
-		return true;
-	};
-
-	/**
-	 * Validates the number is within an acceptable range for milliseconds [0-999].
-	 * @param {Number}   The number to check if within range.
-	 * @return {Boolean} true if within range, otherwise false.
-	 */
-	$D.validateMillisecond = function (value) {
-		return validate(value, 0, 999, "millisecond");
-	};
-
-	/**
-	 * Validates the number is within an acceptable range for seconds [0-59].
-	 * @param {Number}   The number to check if within range.
-	 * @return {Boolean} true if within range, otherwise false.
-	 */
-	$D.validateSecond = function (value) {
-		return validate(value, 0, 59, "second");
-	};
-
-	/**
-	 * Validates the number is within an acceptable range for minutes [0-59].
-	 * @param {Number}   The number to check if within range.
-	 * @return {Boolean} true if within range, otherwise false.
-	 */
-	$D.validateMinute = function (value) {
-		return validate(value, 0, 59, "minute");
-	};
-
-	/**
-	 * Validates the number is within an acceptable range for hours [0-23].
-	 * @param {Number}   The number to check if within range.
-	 * @return {Boolean} true if within range, otherwise false.
-	 */
-	$D.validateHour = function (value) {
-		return validate(value, 0, 23, "hour");
-	};
-
-	/**
-	 * Validates the number is within an acceptable range for the days in a month [0-MaxDaysInMonth].
-	 * @param {Number}   The number to check if within range.
-	 * @return {Boolean} true if within range, otherwise false.
-	 */
-	$D.validateDay = function (value, year, month) {
-		if (year === undefined || year === null || month === undefined || month === null) { return false;}
-		return validate(value, 1, $D.getDaysInMonth(year, month), "day");
-	};
-
-	/**
-	 * Validates the number is within an acceptable range for months [0-11].
-	 * @param {Number}   The number to check if within range.
-	 * @return {Boolean} true if within range, otherwise false.
-	 */
-	$D.validateWeek = function (value) {
-		return validate(value, 0, 53, "week");
-	};
-
-	/**
-	 * Validates the number is within an acceptable range for months [0-11].
-	 * @param {Number}   The number to check if within range.
-	 * @return {Boolean} true if within range, otherwise false.
-	 */
-	$D.validateMonth = function (value) {
-		return validate(value, 0, 11, "month");
-	};
-
-	/**
-	 * Validates the number is within an acceptable range for years.
-	 * @param {Number}   The number to check if within range.
-	 * @return {Boolean} true if within range, otherwise false.
-	 */
-	$D.validateYear = function (value) {
-		/**
-		 * Per ECMAScript spec the range of times supported by Date objects is 
-		 * exactly -100,000,000 days to +100,000,000 days measured relative to 
-		 * midnight at the beginning of 01 January, 1970 UTC. 
-		 * This gives a range of 8,640,000,000,000,000 milliseconds to either 
-		 * side of 01 January, 1970 UTC.
-		 *
-		 * Earliest possible date: Tue, 20 Apr 271,822 B.C. 00:00:00 UTC
-		 * Latest possible date: Sat, 13 Sep 275,760 00:00:00 UTC
-		 */
-		return validate(value, -271822, 275760, "year");
-	};
-	$D.validateTimezone = function(value) {
-		var timezones = {"ACDT":1,"ACST":1,"ACT":1,"ADT":1,"AEDT":1,"AEST":1,"AFT":1,"AKDT":1,"AKST":1,"AMST":1,"AMT":1,"ART":1,"AST":1,"AWDT":1,"AWST":1,"AZOST":1,"AZT":1,"BDT":1,"BIOT":1,"BIT":1,"BOT":1,"BRT":1,"BST":1,"BTT":1,"CAT":1,"CCT":1,"CDT":1,"CEDT":1,"CEST":1,"CET":1,"CHADT":1,"CHAST":1,"CHOT":1,"ChST":1,"CHUT":1,"CIST":1,"CIT":1,"CKT":1,"CLST":1,"CLT":1,"COST":1,"COT":1,"CST":1,"CT":1,"CVT":1,"CWST":1,"CXT":1,"DAVT":1,"DDUT":1,"DFT":1,"EASST":1,"EAST":1,"EAT":1,"ECT":1,"EDT":1,"EEDT":1,"EEST":1,"EET":1,"EGST":1,"EGT":1,"EIT":1,"EST":1,"FET":1,"FJT":1,"FKST":1,"FKT":1,"FNT":1,"GALT":1,"GAMT":1,"GET":1,"GFT":1,"GILT":1,"GIT":1,"GMT":1,"GST":1,"GYT":1,"HADT":1,"HAEC":1,"HAST":1,"HKT":1,"HMT":1,"HOVT":1,"HST":1,"ICT":1,"IDT":1,"IOT":1,"IRDT":1,"IRKT":1,"IRST":1,"IST":1,"JST":1,"KGT":1,"KOST":1,"KRAT":1,"KST":1,"LHST":1,"LINT":1,"MAGT":1,"MART":1,"MAWT":1,"MDT":1,"MET":1,"MEST":1,"MHT":1,"MIST":1,"MIT":1,"MMT":1,"MSK":1,"MST":1,"MUT":1,"MVT":1,"MYT":1,"NCT":1,"NDT":1,"NFT":1,"NPT":1,"NST":1,"NT":1,"NUT":1,"NZDT":1,"NZST":1,"OMST":1,"ORAT":1,"PDT":1,"PET":1,"PETT":1,"PGT":1,"PHOT":1,"PHT":1,"PKT":1,"PMDT":1,"PMST":1,"PONT":1,"PST":1,"PYST":1,"PYT":1,"RET":1,"ROTT":1,"SAKT":1,"SAMT":1,"SAST":1,"SBT":1,"SCT":1,"SGT":1,"SLST":1,"SRT":1,"SST":1,"SYOT":1,"TAHT":1,"THA":1,"TFT":1,"TJT":1,"TKT":1,"TLT":1,"TMT":1,"TOT":1,"TVT":1,"UCT":1,"ULAT":1,"UTC":1,"UYST":1,"UYT":1,"UZT":1,"VET":1,"VLAT":1,"VOLT":1,"VOST":1,"VUT":1,"WAKT":1,"WAST":1,"WAT":1,"WEDT":1,"WEST":1,"WET":1,"WST":1,"YAKT":1,"YEKT":1,"Z":1};
-		return (timezones[value] === 1);
-	};
-	$D.validateTimezoneOffset = function(value) {
-		// timezones go from +14hrs to -12hrs, the +X hours are negative offsets.
-		return (value > -841 && value < 721);
-	};
-
-    $D.validateSetExplicitTime = function(value)
-    {
-        return true;
-    };
-
-
-	var validateConfigObject = function (obj) {
-		var result = {}, self = this, prop, testFunc;
-		testFunc = function (prop, func, value) {
-			if (prop === "day") {
-				var month = (obj.month !== undefined) ? obj.month : self.getMonth();
-				var year = (obj.year !== undefined) ? obj.year : self.getFullYear();
-				return $D[func](value, year, month);
-			} else {
-				return $D[func](value);
-			}
-		};
-		for (prop in obj) {
-			if (hasOwnProperty.call(obj, prop)) {
-				var func = "validate" + prop.charAt(0).toUpperCase() + prop.slice(1);
-
-				if ($D[func] && obj[prop] !== null && testFunc(prop, func, obj[prop])) {
-					result[prop] = obj[prop];
-				}
-			}
-		}
-		return result;
-	};
-	
-	/**
-	 * Set the value of year, month, day, hour, minute, second, millisecond of date instance using given configuration object.
-	 * Example
-	<pre><code>
-	Date.today().set( { day: 20, month: 1 } )
-
-	new Date().set( { millisecond: 0 } )
-	</code></pre>
-	 * 
-	 * @param {Object}   Configuration object containing attributes (month, day, etc.)
-	 * @return {Date}    this
-	 */
-	$P.set = function (config) {
-		config = validateConfigObject.call(this, config);
-		var key;
-		for (key in config) {
-			if (hasOwnProperty.call(config, key)) {
-				var name = key.charAt(0).toUpperCase() + key.slice(1);
-				var addFunc, getFunc;
-				if (key !== "week" && key !== "month" && key !== "timezone" && key !== "timezoneOffset") {
-					name += "s";
-				}
-				addFunc = "add" + name;
-				getFunc = "get" + name;
-				if (key === "month") {
-					addFunc = addFunc + "s";
-				} else if (key === "year"){
-					getFunc = "getFullYear";
-				}
-                if (key !== "day" && key !== "timezone" && key !== "timezoneOffset"  && key !== "week" && key !== "hour" && key !== "setExplicitTime") {
-					this[addFunc](config[key] - this[getFunc]());
-				} else if ( key === "timezone"|| key === "timezoneOffset" || key === "week" || key === "hour") {
-					this["set"+name](config[key]);
-				}
-			}
-		}
-
-		// day has to go last because you can't validate the day without first knowing the month
-		if (config.day) {
-			this.addDays(config.day - this.getDate());
-		}
-
-		if (config.setExplicitTime) {
-			this.ensureTimeOfDay();
-		}
-
-		return this;
-	};
-
-	/**
-	 * Moves the date to the first day of the month.
-	 * @return {Date}    this
-	 */
-	$P.moveToFirstDayOfMonth = function () {
-		return this.set({ day: 1 });
-	};
-
-	/**
-	 * Moves the date to the last day of the month.
-	 * @return {Date}    this
-	 */
-	$P.moveToLastDayOfMonth = function () {
-		return this.set({ day: $D.getDaysInMonth(this.getFullYear(), this.getMonth())});
-	};
-
 	/**
 	 * Moves the date to the next n'th occurrence of the dayOfWeek starting from the beginning of the month. The number (-1) is a magic number and will return the last occurrence of the dayOfWeek in the month.
 	 * @param {Number}   The dayOfWeek to move to
@@ -1280,6 +887,67 @@ this.dateLibLoaded = true;
 	$P.getElapsed = function (date) {
 		return (date || new Date()) - this;
 	};
+
+	/**
+	 * Set the value of year, month, day, hour, minute, second, millisecond of date instance using given configuration object.
+	 * Example
+	<pre><code>
+	Date.today().set( { day: 20, month: 1 } )
+
+	new Date().set( { millisecond: 0 } )
+	</code></pre>
+	 * 
+	 * @param {Object}   Configuration object containing attributes (month, day, etc.)
+	 * @return {Date}    this
+	 */
+	$P.set = function (config) {
+		config = validateConfigObject.call(this, config);
+		var key;
+		for (key in config) {
+			if (hasOwnProperty.call(config, key)) {
+				var name = key.charAt(0).toUpperCase() + key.slice(1);
+				var addFunc, getFunc;
+				if (key !== "week" && key !== "month" && key !== "timezone" && key !== "timezoneOffset") {
+					name += "s";
+				}
+				addFunc = "add" + name;
+				getFunc = "get" + name;
+				if (key === "month") {
+					addFunc = addFunc + "s";
+				} else if (key === "year"){
+					getFunc = "getFullYear";
+				}
+				if (key !== "day" && key !== "timezone" && key !== "timezoneOffset"  && key !== "week" &&  key !== "hour" && key !== "setExplicitTime") {
+					this[addFunc](config[key] - this[getFunc]());
+				} else if ( key === "timezone"|| key === "timezoneOffset" || key === "week" || key === "hour") {
+					this["set"+name](config[key]);
+				}
+			}
+		}
+		// day has to go last because you can't validate the day without first knowing the month
+		if (config.day) {
+			this.addDays(config.day - this.getDate());
+		}
+		
+		return this;
+	};
+
+	/**
+	 * Moves the date to the first day of the month.
+	 * @return {Date}    this
+	 */
+	$P.moveToFirstDayOfMonth = function () {
+		return this.set({ day: 1 });
+	};
+
+	/**
+	 * Moves the date to the last day of the month.
+	 * @return {Date}    this
+	 */
+	$P.moveToLastDayOfMonth = function () {
+		return this.set({ day: $D.getDaysInMonth(this.getFullYear(), this.getMonth())});
+	};
+
 
 	/**
 	 * Converts the value of the current Date object to its equivalent string representation.
@@ -1476,7 +1144,6 @@ this.dateLibLoaded = true;
 	};
 
 }());
-
 /*************************************************************
  * SugarPak - Domain Specific Language -  Syntactical Sugar  *
  *************************************************************/
@@ -2208,7 +1875,7 @@ this.dateLibLoaded = true;
 				(s[0] === "+" && s[0] === "-")) {			// It's an arithmatic string (eg +/-1000)
 				return null;
 			}
-			if (s.length < 5) { // assume it's just a year.
+			if (s.length < 5 && s.indexOf(".") < 0 && s.indexOf("/") < 0) { // assume it's just a year.
 				time.year = s;
 				return $P.processTimeObject(time);
 			}
@@ -2871,14 +2538,16 @@ this.dateLibLoaded = true;
 			}
 		},
 		setDaysFromWeekday: function (today, orient){
-			var gap, orient = orient || 1;
+			var gap;
+			orient = orient || 1;
 			this.unit = "day";
 			gap = ($D.getDayNumberFromName(this.weekday) - today.getDay());
 			this.days = gap ? (gap + (orient * 7)) : (orient * 7);
 			return this;
 		},
 		setMonthsFromMonth: function (today, orient) {
-			var gap, orient = orient || 1;
+			var gap;
+			orient = orient || 1;
 			this.unit = "month";
 			gap = (this.month - today.getMonth());
 			this.months = gap ? ((gap + (orient * 12)) % 12) : (orient * 12);
@@ -3155,7 +2824,7 @@ this.dateLibLoaded = true;
 
 
 			(expression) ? today.add(this) : today.set(this);
-
+			
 			if (this.timezone) {
 				this.timezone = this.timezone.toUpperCase();
 				var offset = $D.getTimezoneOffset(this.timezone);
@@ -3165,7 +2834,7 @@ this.dateLibLoaded = true;
 					timezone = $D.getTimezoneAbbreviation(offset, today.isDaylightSavingTime());
 					if (timezone !== this.timezone) {
 						// bugger, we're in a place where things like EST vs EDT matters.
-						(today.isDaylightSavingTime()) ? today.addHours(-1) : today.addHours(1); 
+						(today.isDaylightSavingTime()) ? today.addHours(-1) : today.addHours(1);
 					}
 				}
 				today.setTimezoneOffset(offset);
@@ -3179,7 +2848,10 @@ this.dateLibLoaded = true;
 	var $D = Date;
 	$D.Grammar = {};
 	var _ = $D.Parsing.Operators, g = $D.Grammar, t = $D.Translator, _fn;
-
+	// Allow rolling up into general purpose rules
+	_fn = function () {
+		return _.each(_.any.apply(null, arguments), _.not(g.ctoken2("timeContext")));
+	};
 	g.datePartDelimiter = _.rtoken(/^([\s\-\.\,\/\x27]+)/);
 	g.timePartDelimiter = _.stoken(":");
 	g.whiteSpace = _.rtoken(/^\s*/);
@@ -3201,27 +2873,18 @@ this.dateLibLoaded = true;
 	g.ctoken2 = function (key) {
 		return _.rtoken(Date.CultureInfo.regexPatterns[key]);
 	};
-	var cacheProcessRtoken = function (token, type, eachToken) {
+	var cacheProcessRtoken = function (key, token, type, eachToken) {
 		if (eachToken) {
-			return _.cache(_.process(_.each(_.rtoken(token),_.optional(g.ctoken2(eachToken))), type));
+			g[key] = _.cache(_.process(_.each(_.rtoken(token),_.optional(g.ctoken2(eachToken))), type));
 		} else {
-			return _.cache(_.process(_.rtoken(token), type));
+			g[key] = _.cache(_.process(_.rtoken(token), type));
 		}
 	};
-
-	var _F = {
-		//"M/d/yyyy": function (s) { 
-		//	var m = s.match(/^([0-2]\d|3[0-1]|\d)\/(1[0-2]|0\d|\d)\/(\d\d\d\d)/);
-		//	if (m!=null) { 
-		//		var r =  [ t.month.call(this,m[1]), t.day.call(this,m[2]), t.year.call(this,m[3]) ];
-		//		r = t.finishExact.call(this,r);
-		//		return [ r, "" ];
-		//	} else {
-		//		throw new Date.Parsing.Exception(s);
-		//	}
-		//}
-		//"M/d/yyyy": function (s) { return [ new Date(Date._parse(s)), ""]; }
+	var cacheProcessCtoken = function (token, type) {
+		return _.cache(_.process(g.ctoken2(token), type));
 	};
+	var _F = {}; //function cache
+
 	var _get = function (f) {
 		_F[f] = (_F[f] || g.format(f)[0]);
 		return _F[f];
@@ -3253,36 +2916,64 @@ this.dateLibLoaded = true;
 
 	var grammarFormats = {
 		 timeFormats: function(){
-		 	// hour, minute, second, meridian, timezone
-			g.h = cacheProcessRtoken(/^(0[0-9]|1[0-2]|[1-9])/, t.hour);
-			g.hh = cacheProcessRtoken(/^(0[0-9]|1[0-2])/, t.hour);
-			g.H = cacheProcessRtoken(/^([0-1][0-9]|2[0-3]|[0-9])/, t.hour);
-			g.HH = cacheProcessRtoken(/^([0-1][0-9]|2[0-3])/, t.hour);
-			g.m = cacheProcessRtoken(/^([0-5][0-9]|[0-9])/, t.minute);
-			g.mm = cacheProcessRtoken(/^[0-5][0-9]/, t.minute);
-			g.s = cacheProcessRtoken(/^([0-5][0-9]|[0-9])/, t.second);
-			g.ss = cacheProcessRtoken(/^[0-5][0-9]/, t.second);
-			g["ss.s"] = cacheProcessRtoken(/^[0-5][0-9]\.[0-9]{1,3}/, t.secondAndMillisecond);
+			var i,
+			RTokenKeys = [
+				"h",
+				"hh",
+				"H",
+				"HH",
+				"m",
+				"mm",
+				"s",
+				"ss",
+				"ss.s",
+				"z",
+				"zz"
+			],
+			RToken = [
+				/^(0[0-9]|1[0-2]|[1-9])/,
+				/^(0[0-9]|1[0-2])/,
+				/^([0-1][0-9]|2[0-3]|[0-9])/,
+				/^([0-1][0-9]|2[0-3])/,
+				/^([0-5][0-9]|[0-9])/,
+				/^[0-5][0-9]/,
+				/^([0-5][0-9]|[0-9])/,
+				/^[0-5][0-9]/,
+				/^[0-5][0-9]\.[0-9]{1,3}/,
+				/^((\+|\-)\s*\d\d\d\d)|((\+|\-)\d\d\:?\d\d)/,
+				/^((\+|\-)\s*\d\d\d\d)|((\+|\-)\d\d\:?\d\d)/
+			],
+			tokens = [
+				t.hour,
+				t.hour,
+				t.hour,
+				t.minute,
+				t.minute,
+				t.second,
+				t.second,
+				t.secondAndMillisecond,
+				t.timezone,
+				t.timezone,
+				t.timezone
+			];
+
+			for (i=0; i < RTokenKeys.length; i++) {
+				cacheProcessRtoken(RTokenKeys[i], RToken[i], tokens[i]);
+			}
+
 			g.hms = _.cache(_.sequence([g.H, g.m, g.s], g.timePartDelimiter));
-		  
-			// _.min(1, _.set([ g.H, g.m, g.s ], g._t));
-			g.t = _.cache(_.process(g.ctoken2("shortMeridian"), t.meridian));
-			g.tt = _.cache(_.process(g.ctoken2("longMeridian"), t.meridian));
-			g.z = cacheProcessRtoken(/^((\+|\-)\s*\d\d\d\d)|((\+|\-)\d\d\:?\d\d)/, t.timezone);
-			g.zz = cacheProcessRtoken(/^((\+|\-)\s*\d\d\d\d)|((\+|\-)\d\d\:?\d\d)/, t.timezone);
-			
-			g.zzz = _.cache(_.process(g.ctoken2("timezone"), t.timezone));
+
+			g.t = cacheProcessCtoken("shortMeridian", t.meridian);
+			g.tt = cacheProcessCtoken("longMeridian", t.meridian);
+			g.zzz = cacheProcessCtoken("timezone", t.timezone);
+
 			g.timeSuffix = _.each(_.ignore(g.whiteSpace), _.set([ g.tt, g.zzz ]));
 			g.time = _.each(_.optional(_.ignore(_.stoken("T"))), g.hms, g.timeSuffix);
 		 },
 		 dateFormats: function () {
-			// Allow rolling these up into general purpose rules
-		 	_fn = function () {
-				return _.each(_.any.apply(null, arguments), _.not(g.ctoken2("timeContext")));
-			};
-		 	// days, months, years
-			g.d = cacheProcessRtoken(/^([0-2]\d|3[0-1]|\d)/, t.day, "ordinalSuffix");
-			g.dd = cacheProcessRtoken(/^([0-2]\d|3[0-1])/, t.day, "ordinalSuffix");
+			// days, months, years
+			cacheProcessRtoken("d", /^([0-2]\d|3[0-1]|\d)/, t.day, "ordinalSuffix");
+			cacheProcessRtoken("dd", /^([0-2]\d|3[0-1])/, t.day, "ordinalSuffix");
 			g.rday = _.cache(_.process(g.ctoken("yesterday tomorrow soon later today now"), t.rday));
 			g.ddd = g.dddd = _.cache(_.process(g.ctoken("sun mon tue wed thu fri sat"),
 				function (s) {
@@ -3291,21 +2982,21 @@ this.dateLibLoaded = true;
 					};
 				}
 			));
-			g.M = cacheProcessRtoken(/^(1[0-2]|0\d|\d)/, t.month);
-			g.MM = cacheProcessRtoken(/^(1[0-2]|0\d)/, t.month);
+			cacheProcessRtoken("M", /^(1[0-2]|0\d|\d)/, t.month);
+			cacheProcessRtoken("MM", /^(1[0-2]|0\d)/, t.month);
 			g.MMM = g.MMMM = _.cache(_.process(g.ctoken("jan feb mar apr may jun jul aug sep oct nov dec"), t.month));
 			//g.MMM = g.MMMM = _.cache(_.process(g.ctoken(Date.CultureInfo.abbreviatedMonthNames.join(" ")), t.month));
-			g.y = cacheProcessRtoken(/^(\d+)/, t.year);
-			g.yy = cacheProcessRtoken(/^(\d\d)/, t.year);
-			g.yyy = cacheProcessRtoken(/^(\d\d?\d?\d?)/, t.year);
-			g.yyyy = cacheProcessRtoken(/^(\d\d\d\d)/, t.year);
+			cacheProcessRtoken("y", /^(\d+)/, t.year);
+			cacheProcessRtoken("yy", /^(\d\d)/, t.year);
+			cacheProcessRtoken("yyy", /^(\d\d?\d?\d?)/, t.year);
+			cacheProcessRtoken("yyyy", /^(\d\d\d\d)/, t.year);
 
 			g.day = _fn(g.d, g.dd, g.rday);
 			g.month = _fn(g.M, g.MMM);
 			g.year = _fn(g.yyyy, g.yy);
 
 			// pre-loaded rules for different date part order preferences
-			_setfn = function () {
+			var _setfn = function () {
 				return  _.set(arguments, g.datePartDelimiter);
 			};
 			g.mdy = _setfn(g.ddd, g.month, g.day, g.year);
@@ -3317,7 +3008,7 @@ this.dateLibLoaded = true;
 			};
 		 },
 		 relative: function () {
-		 	// relative date / time expressions
+			// relative date / time expressions
 			g.orientation = _.process(g.ctoken("past future"),
 				function (s) {
 					return function () {
@@ -3348,9 +3039,9 @@ this.dateLibLoaded = true;
 		// these need to be rebuilt every time the language changes.
 		_C = {};
 
-	  	grammarFormats.timeFormats();
-	  	grammarFormats.dateFormats();
-	  	grammarFormats.relative();
+		grammarFormats.timeFormats();
+		grammarFormats.dateFormats();
+		grammarFormats.relative();
 
 		
 		g.value = _.process(_.rtoken(/^([-+]?\d+)?(st|nd|rd|th)?/),
@@ -3572,7 +3263,6 @@ this.dateLibLoaded = true;
 			// find ordinal dates (1st, 3rd, 8th, etc and remove them as they cause parsing issues)
 			s = $D.Parsing.Normalizer.parse(parseUtils.removeOrds(s));
 			d = parseUtils.grammarParser(s);
-
 			if (d !== null) {
 				return d;
 			} else {
@@ -3673,9 +3363,9 @@ this.dateLibLoaded = true;
 				case "j":
 				case "l":
 				case "%A":
-					return "dddd";	
+					return "dddd";
 				case "S":
-					return "S";	
+					return "S";
 				case "F":
 				case "%B":
 					return "MMMM";
@@ -3818,7 +3508,7 @@ this.dateLibLoaded = true;
 	};
 
 	$D.normalizeFormat = function (format, context) {
-		return format.replace(/(%|\\)?.|%%/g, function(t){ 
+		return format.replace(/(%|\\)?.|%%/g, function(t){
 				return normalizer.parse(t, context);
 		});
 	};

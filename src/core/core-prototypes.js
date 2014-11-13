@@ -302,6 +302,10 @@
 		if (x.days) {
 			this.addDays(x.days);
 		}
+		if (x.setExplicitTime)
+		{
+			this.ensureTimeOfDay();
+		}
 		return this;
 	};
 	
@@ -540,8 +544,8 @@
 				} else if (key === "year"){
 					getFunc = "getFullYear";
 				}
-				if (key !== "day" && key !== "timezone" && key !== "timezoneOffset"  && key !== "week" &&  key !== "hour") {
-						this[addFunc](config[key] - this[getFunc]());
+				if (key !== "day" && key !== "timezone" && key !== "timezoneOffset"  && key !== "week" &&  key !== "hour" && key !== "setExplicitTime") {
+					this[addFunc](config[key] - this[getFunc]());
 				} else if ( key === "timezone"|| key === "timezoneOffset" || key === "week" || key === "hour") {
 					this["set"+name](config[key]);
 				}
