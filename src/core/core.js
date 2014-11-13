@@ -233,19 +233,13 @@
 		return Math.floor((qEnd - d) / 8.64e7);
 	};
 
-
-		return tDate;
 	$P.ensureTimeOfDay = function() {
 		if (this.getMilliseconds() === 0)
 		{
 			this.setTime(this.getTime() + 1);
 		}
 	}
-	
-		if (x.setExplicitTime)
-		{
-			this.ensureTimeOfDay();
-		}
+
 	// private
 	var validate = function (n, min, max, name) {
 		name = name ? name : "Object";
