@@ -2,7 +2,9 @@
 if (typeof process !== "undefined") {
 	process.env.TZ = 'America/Los_Angeles';
 }
-require("../index.js");
+if (typeof require === "function") {
+	require("../index.js");
+}
 
 describe("Parsing Module", function() {
 	var correctDate = new Date(1995, 11, 4, 0, 0, 0, 0);
@@ -169,6 +171,17 @@ describe("Parsing Module", function() {
 			expect(d.getTime()).toBe(correctDate.getTime());
 		});
 	});
+	describe("supports shorter date formats", function() {
+		var thisYear = Date.today().set({month: 9, day: 6});
+		it("10/6", function () {
+			var d = Date.parse("10/6");
+			expect(d.getTime()).toBe(thisYear.getTime());
+		});
+		it("10.6", function () {
+			var d = Date.parse("10.6");
+			expect(d.getTime()).toBe(thisYear.getTime());
+		});
+	});
 	describe("supports variations in sortable date formats", function() {
 		it("1995/12/04", function () {
 			var d = Date.parse("1995/12/04");
@@ -231,14 +244,14 @@ describe("Parsing Module", function() {
 			var d2 = Date.today();
 			var diff = Math.abs(d.getElapsed(Date.today())/1000/60/60/24); // days
 			expect(d.getDay()).toBe(2);
-			expect(diff).toBeLessThan(7);
+			expect(diff <= 7).toBeTruthy();
 		});
 		it("next tuesday", function () {
 			var d = Date.parse("next tuesday");
 			var d2 = Date.today();
 			var diff = Math.abs(d.getElapsed(Date.today())/1000/60/60/24); // days
 			expect(d.getDay()).toBe(2);
-			expect(diff).toBeLessThan(7);
+			expect(diff <= 7).toBeTruthy();
 		});
 		it("last week", function () {
 			var d = Date.parse("last week");
