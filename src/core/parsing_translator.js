@@ -270,7 +270,6 @@
 					x[i].call(this);
 				}
 			}
-
 			if (this.now && !this.unit && !this.operator) {
 				return new Date();
 			} else {
@@ -360,7 +359,6 @@
 			if (expression && this.timezone && this.day && this.days) {
 				this.day = this.days;
 			}
-			
 			if (!givenYear && this.month < today.getMonth())
 			{
 				this.year = today.getFullYear() + 1;
