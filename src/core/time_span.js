@@ -164,7 +164,11 @@
 
 	Date.prototype.hasTimeOfDay = function() {
 		return (this.getHours() !== 0 || this.getMinutes() !== 0 || this.getSeconds() !== 0 || this.getMilliseconds() !== 0);
-	}
+	};
+
+	Date.prototype.isRepeatDate = function() {
+		return false;
+	};
 
 	Date.TimeSpan = TimeSpan;
 
