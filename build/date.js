@@ -276,6 +276,7 @@ this.dateLibLoaded = true;
 				tomorrow: "/^tom(orrow)?/",
 				soon: "/^soon/",
 				later: "/^later/",
+				someday: "/^someday/",
 				now: "/^now/",
 				shortMeridian: "/^(a|p)/",
 				longMeridian: "/^(a\\.?m?\\.?|p\\.?m?\\.?)/",
@@ -2997,6 +2998,9 @@ this.dateLibLoaded = true;
 					case "yesterday":
 						this.days = -1;
 						break;
+					case "someday":
+						this.days = 14;
+						break;
 					case "later":
 						this.days = 5;
 						break;
@@ -3312,7 +3316,7 @@ this.dateLibLoaded = true;
 			// days, months, years
 			cacheProcessRtoken("d", /^([0-2]\d|3[0-1]|\d)/, t.day, "ordinalSuffix");
 			cacheProcessRtoken("dd", /^([0-2]\d|3[0-1])/, t.day, "ordinalSuffix");
-			g.rday = _.cache(_.process(g.ctoken("yesterday tomorrow soon later today now"), t.rday));
+			g.rday = _.cache(_.process(g.ctoken("yesterday tomorrow soon later someday today now"), t.rday));
 			g.ddd = g.dddd = _.cache(_.process(g.ctoken("sun mon tue wed thu fri sat"),
 				function (s) {
 					return function () {
@@ -3362,7 +3366,7 @@ this.dateLibLoaded = true;
 					};
 				}
 			);
-			// g.rday = _.process(g.ctoken("yesterday tomorrow soon later today now"), t.rday);
+			// g.rday = _.process(g.ctoken("yesterday tomorrow soon later someday today now"), t.rday);
 			// g.unit = _.process(g.ctoken("second minute hour day week month year"),
 			// 	function (s) {
 			// 		return function () {

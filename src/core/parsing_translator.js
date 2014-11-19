@@ -201,6 +201,9 @@
 					case "yesterday":
 						this.days = -1;
 						break;
+					case "someday":
+						this.days = 14;
+						break;
 					case "later":
 						this.days = 5;
 						break;

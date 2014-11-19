@@ -264,6 +264,7 @@
 				tomorrow: "/^tom(orrow)?/",
 				soon: "/^soon/",
 				later: "/^later/",
+				someday: "/^someday/",
 				now: "/^now/",
 				shortMeridian: "/^(a|p)/",
 				longMeridian: "/^(a\\.?m?\\.?|p\\.?m?\\.?)/",

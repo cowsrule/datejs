@@ -128,7 +128,7 @@
 			// days, months, years
 			cacheProcessRtoken("d", /^([0-2]\d|3[0-1]|\d)/, t.day, "ordinalSuffix");
 			cacheProcessRtoken("dd", /^([0-2]\d|3[0-1])/, t.day, "ordinalSuffix");
-			g.rday = _.cache(_.process(g.ctoken("yesterday tomorrow soon later today now"), t.rday));
+			g.rday = _.cache(_.process(g.ctoken("yesterday tomorrow soon later someday today now"), t.rday));
 			g.ddd = g.dddd = _.cache(_.process(g.ctoken("sun mon tue wed thu fri sat"),
 				function (s) {
 					return function () {
@@ -178,7 +178,7 @@
 					};
 				}
 			);
-			// g.rday = _.process(g.ctoken("yesterday tomorrow soon later today now"), t.rday);
+			// g.rday = _.process(g.ctoken("yesterday tomorrow soon later someday today now"), t.rday);
 			// g.unit = _.process(g.ctoken("second minute hour day week month year"),
 			// 	function (s) {
 			// 		return function () {
